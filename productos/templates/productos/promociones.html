@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Promociones masivas - NAHARA{% endblock %}
+{% block content %}
+<h2 class="mb-2">Promociones masivas</h2>
+<p class="text-muted">Selecciona varios productos y aplica un descuento porcentual a los 4 niveles de precio (Minorista, Mayorista, Franquicia, Asesora Libre) al mismo tiempo.</p>
+
+<form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="card mb-3">
+        <div class="card-body d-flex flex-wrap align-items-end gap-3">
+            <div>
+                <label class="form-label mb-1">% de descuento a aplicar</label>
+                <input type="number" name="porcentaje" min="1" max="95" step="1" class="form-control" style="width:140px;" placeholder="Ej. 20">
+            </div>
+            <button type="submit" name="accion" value="aplicar" class="btn btn-nahara">Aplicar oferta a seleccionados</button>
+            <button type="submit" name="accion" value="quitar" class="btn btn-outline-danger">Quitar oferta de seleccionados</button>
+            <button type="button" class="btn btn-outline-dark ms-auto" id="btnSeleccionarTodos">Seleccionar todos</button>
+        </div>
+    </div>
+
+    <table class="table table-bordered bg-white align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th style="width:40px;"></th>
+                <th>SKU</th>
+                <th>Nombre</th>
+                <th>Categoría</th>
+                <th>Minorista</th>
+                <th>Estado actual</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in productos %}
+            <tr>
+                <td><input type="checkbox" name="producto_id" value="{{ p.id }}" class="form-check-input casilla-producto"></td>
+                <td>{{ p.sku }}</td>
+                <td>{{ p.nombre }}</td>
+                <td>{{ p.categoria.nombre }}</td>
+                <td>
+                    {% if p.en_oferta %}
+                        <span class="text-decoration-line-through text-muted small">Bs. {{ "%.2f"|format(p.precio_usd_por_nivel("Minorista") * tipo_cambio) }}</span>
+                        <strong>Bs. {{ "%.2f"|format(p.precio_final_usd("Minorista") * tipo_cambio) }}</strong>
+                    {% else %}
+                        Bs. {{ "%.2f"|format(p.precio_usd_por_nivel("Minorista") * tipo_cambio) }}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if p.en_oferta %}
+                        <span class="badge bg-danger">En oferta: -{{ p.porcentaje_descuento|int }}%</span>
+                    {% else %}
+                        <span class="text-muted small">Sin oferta</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6" class="text-center text-muted">No hay productos registrados.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</form>
+<a href="{{ url_for('productos.listar') }}" class="d-block mt-3">Volver al listado de productos</a>
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+    document.getElementById('btnSeleccionarTodos').addEventListener('click', function () {
+        const casillas = document.querySelectorAll('.casilla-producto');
+        const marcarTodo = ![...casillas].every(c => c.checked);
+        casillas.forEach(c => c.checked = marcarTodo);
+    });
+</script>
+{% endblock %}

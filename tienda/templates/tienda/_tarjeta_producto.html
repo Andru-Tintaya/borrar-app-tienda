@@ -1,0 +1,46 @@
+{# Parámetros esperados: p (Producto), ids_mas_vendidos (set de IDs) #}
+<div class="card h-100 shadow-sm tarjeta-producto">
+    <div class="position-relative">
+        <a href="{{ url_for('tienda.producto_detalle', producto_id=p.id) }}">
+            {% if p.imagen_principal %}
+                <img src="{{ url_for('static', filename=p.imagen_principal.ruta_archivo) }}" class="card-img-top" style="height:220px;object-fit:cover;" alt="{{ p.nombre }}">
+            {% else %}
+                <div class="bg-light d-flex align-items-center justify-content-center" style="height:220px;">
+                    <span class="text-muted small">Sin foto</span>
+                </div>
+            {% endif %}
+        </a>
+        <div class="badges-producto">
+            {% if p.es_nuevo %}<span class="badge-producto badge-nuevo">Nuevo</span>{% endif %}
+            {% if p.es_destacado %}<span class="badge-producto badge-destacado">Destacado</span>{% endif %}
+            {% if p.en_oferta %}<span class="badge-producto badge-oferta">-{{ p.porcentaje_descuento|int }}%</span>{% endif %}
+            {% if p.id in ids_mas_vendidos %}<span class="badge-producto badge-mas-vendido">Más vendido</span>{% endif %}
+            {% if not p.activo %}<span class="badge-producto badge-inactivo">Inactivo</span>{% endif %}
+        </div>
+    </div>
+    <div class="card-body d-flex flex-column">
+        <p class="text-muted small text-uppercase mb-1">{{ p.categoria.nombre }}</p>
+        <h6 class="card-title">
+            <a href="{{ url_for('tienda.producto_detalle', producto_id=p.id) }}" class="text-decoration-none text-dark">{{ p.nombre }}</a>
+        </h6>
+        <div class="mt-auto">
+            {% set precio_tarjeta, nivel_tarjeta = calcular_precio_unitario(p, current_user, 0) %}
+            {% if p.en_oferta %}
+                <p class="mb-1">
+                    <span class="text-decoration-line-through text-muted small">Bs. {{ "%.2f"|format(p.precio_usd_por_nivel(nivel_tarjeta) * tipo_cambio_actual()) }}</span>
+                    <span class="fw-bold ms-1">Bs. {{ "%.2f"|format(precio_tarjeta) }}</span>
+                </p>
+            {% else %}
+                <p class="mb-1 fw-bold">Bs. {{ "%.2f"|format(precio_tarjeta) }}</p>
+            {% endif %}
+            <form method="POST" action="{{ url_for('tienda.agregar_carrito') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="producto_id" value="{{ p.id }}">
+                <input type="hidden" name="cantidad" value="1">
+                <button type="submit" class="btn btn-nahara btn-sm w-100" {% if p.stock <= 0 %}disabled{% endif %}>
+                    {{ "Agregar" if p.stock > 0 else "Sin stock" }}
+                </button>
+            </form>
+        </div>
+    </div>
+</div>

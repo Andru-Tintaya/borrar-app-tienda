@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Ingresar - NAHARA{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h2 class="mb-4 text-center">¿Cómo deseas ingresar?</h2>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Personal NAHARA</h5>
+                        <p class="card-text text-muted">Gerencia, Administración y Vendedores.</p>
+                        <a href="{{ url_for('auth.login_staff') }}" class="btn btn-nahara w-100">Ingresar como personal</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Cliente</h5>
+                        <p class="card-text text-muted">Compra pública, Minorista o Mayorista.</p>
+                        <a href="{{ url_for('auth.login_cliente') }}" class="btn btn-outline-dark w-100 mb-2">Ingresar con código</a>
+                        <a href="{{ url_for('auth.registro_cliente') }}" class="btn btn-link w-100">¿Aún no tienes cuenta? Regístrate</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Carrito - NAHARA{% endblock %}
+{% block content %}
+<h2 class="mb-4">Tu carrito</h2>
+
+{% if not lineas %}
+<p class="text-muted">Tu carrito está vacío. <a href="{{ url_for('tienda.catalogo') }}">Ir al catálogo</a></p>
+{% else %}
+<table class="table bg-white align-middle">
+    <thead class="table-dark">
+        <tr><th>Producto</th><th>Cantidad</th><th>Precio unit.</th><th>Tarifa</th><th>Subtotal</th><th></th></tr>
+    </thead>
+    <tbody>
+        {% for l in lineas %}
+        <tr>
+            <td>{{ l.producto.nombre }}</td>
+            <td style="max-width:100px;">
+                <form method="POST" action="{{ url_for('tienda.actualizar_carrito') }}" class="d-flex gap-1">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="producto_id" value="{{ l.producto.id }}">
+                    <input type="number" name="cantidad" value="{{ l.cantidad }}" min="1" max="{{ l.producto.stock }}" class="form-control form-control-sm">
+                    <button type="submit" class="btn btn-sm btn-outline-dark">↻</button>
+                </form>
+            </td>
+            <td>Bs. {{ "%.2f"|format(l.precio_unitario) }}</td>
+            <td>
+                {% if l.nivel_precio == "Mayorista" %}<span class="badge bg-success">{{ l.nivel_precio }}</span>
+                {% else %}{{ l.nivel_precio }}{% endif %}
+            </td>
+            <td>Bs. {{ "%.2f"|format(l.subtotal) }}</td>
+            <td>
+                <form method="POST" action="{{ url_for('tienda.eliminar_carrito') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="producto_id" value="{{ l.producto.id }}">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Quitar</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<div class="text-end">
+    <h4>Total: Bs. {{ "%.2f"|format(total) }}</h4>
+    <a href="{{ url_for('tienda.checkout') }}" class="btn btn-nahara btn-lg">Ir a pagar</a>
+</div>
+{% endif %}
+{% endblock %}

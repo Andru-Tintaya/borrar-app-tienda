@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Configurar pago QR - NAHARA{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h2 class="mb-4">Configuración de pago QR institucional</h2>
+
+        <!-- Tipo de cambio del día: casilla destacada, aparte del resto -->
+        <form method="POST" action="{{ url_for('tienda.actualizar_tipo_cambio') }}" class="card mb-4 border-warning">
+            <div class="card-body">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <label class="form-label fw-bold">💲 Tipo de cambio del dólar de HOY (Bs. por 1 USD)</label>
+                <div class="d-flex gap-2">
+                    <input type="number" name="tipo_cambio_usd" step="0.0001" min="0.01" class="form-control"
+                           value="{{ empresa.tipo_cambio_usd or '' }}" placeholder="Ej. 12.50" required>
+                    <button type="submit" class="btn btn-nahara">Actualizar</button>
+                </div>
+                {% if empresa.tipo_cambio_actualizado %}
+                    <div class="form-text">Última actualización: {{ empresa.tipo_cambio_actualizado.strftime("%Y-%m-%d %H:%M") }}</div>
+                {% else %}
+                    <div class="form-text text-danger">Todavía no configuraste el tipo de cambio — los precios en Bs. no se calcularán correctamente hasta que lo hagas.</div>
+                {% endif %}
+                <div class="form-text">Al actualizarlo, <strong>todos</strong> los precios en Bs. de la tienda se recalculan automáticamente (los precios se guardan en USD).</div>
+            </div>
+        </form>
+
+        {% if configuracion.ruta_imagen_qr %}
+            <img src="{{ url_for('static', filename=configuracion.ruta_imagen_qr) }}" style="width:180px;" class="d-block mb-3 border rounded p-2">
+        {% endif %}
+        <form method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <h6 class="mt-2">Datos institucionales (encabezado de la Nota de Venta)</h6>
+            <div class="mb-3">
+                <label class="form-label">Nombre comercial</label>
+                <input type="text" name="nombre_comercial" class="form-control" value="{{ empresa.nombre_comercial or 'NAHARA' }}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Dirección</label>
+                <input type="text" name="direccion" class="form-control" value="{{ empresa.direccion or '' }}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">NIT</label>
+                <input type="text" name="nit" class="form-control" value="{{ empresa.nit or '' }}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Celular</label>
+                <input type="text" name="celular_empresa" class="form-control" value="{{ empresa.celular or '' }}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Ciudad</label>
+                <input type="text" name="ciudad_empresa" class="form-control" value="{{ empresa.ciudad or '' }}">
+            </div>
+
+            <hr>
+            <h6>Pago QR</h6>
+            <div class="mb-3">
+                <label class="form-label">Imagen del QR</label>
+                <input type="file" name="imagen_qr" class="form-control" accept="image/png,image/jpeg,image/webp">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Nombre del beneficiario</label>
+                <input type="text" name="nombre_beneficiario" class="form-control" value="{{ configuracion.nombre_beneficiario or '' }}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Banco</label>
+                <input type="text" name="banco" class="form-control" value="{{ configuracion.banco or '' }}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Número de cuenta</label>
+                <input type="text" name="numero_cuenta" class="form-control" value="{{ configuracion.numero_cuenta or '' }}">
+            </div>
+            <button type="submit" class="btn btn-nahara w-100">Guardar</button>
+        </form>
+        <a href="{{ url_for('dashboard.index') }}" class="d-block text-center mt-3">Volver al dashboard</a>
+    </div>
+</div>
+{% endblock %}

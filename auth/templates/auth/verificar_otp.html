@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Verificar código - NAHARA{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <h2 class="mb-4">Verificar código</h2>
+        <form method="POST" novalidate>
+            {{ formulario.hidden_tag() }}
+            <div class="mb-3">
+                {{ formulario.correo.label(class="form-label") }}
+                {{ formulario.correo(class="form-control") }}
+                {% for error in formulario.correo.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+            </div>
+            <div class="mb-3">
+                {{ formulario.codigo.label(class="form-label") }}
+                {{ formulario.codigo(class="form-control", maxlength=6) }}
+                {% for error in formulario.codigo.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+            </div>
+            {{ formulario.submit(class="btn btn-nahara w-100") }}
+        </form>
+        <a href="{{ url_for('auth.login_cliente') }}" class="d-block text-center mt-3">Solicitar un nuevo código</a>
+    </div>
+</div>
+{% endblock %}

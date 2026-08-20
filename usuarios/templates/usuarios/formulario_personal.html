@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}{{ "Nuevo" if modo == "nuevo" else "Editar" }} usuario - NAHARA{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h2 class="mb-4">{{ "Nuevo usuario de personal" if modo == "nuevo" else "Editar usuario: " + usuario.nombre }}</h2>
+        <form method="POST" novalidate>
+            {{ formulario.hidden_tag() }}
+            <div class="mb-3">
+                {{ formulario.nombre.label(class="form-label") }}
+                {{ formulario.nombre(class="form-control") }}
+                {% for error in formulario.nombre.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+            </div>
+            <div class="mb-3">
+                {{ formulario.correo.label(class="form-label") }}
+                {{ formulario.correo(class="form-control") }}
+                {% for error in formulario.correo.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+            </div>
+            <div class="mb-3">
+                {{ formulario.rol_id.label(class="form-label") }}
+                {{ formulario.rol_id(class="form-select") }}
+            </div>
+            <div class="mb-3 form-check">
+                {{ formulario.activo(class="form-check-input") }}
+                {{ formulario.activo.label(class="form-check-label") }}
+            </div>
+            <div class="mb-3">
+                {{ formulario.password.label(class="form-label") }}
+                {{ formulario.password(class="form-control") }}
+                {% if modo == "editar" %}<div class="form-text">Déjalo vacío para no cambiar la contraseña.</div>{% endif %}
+                {% for error in formulario.password.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+            </div>
+            <div class="mb-3">
+                {{ formulario.confirmar_password.label(class="form-label") }}
+                {{ formulario.confirmar_password(class="form-control") }}
+                {% for error in formulario.confirmar_password.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+            </div>
+            {{ formulario.submit(class="btn btn-nahara w-100") }}
+        </form>
+        <a href="{{ url_for('usuarios.listar_personal') }}" class="d-block text-center mt-3">Volver al listado</a>
+    </div>
+</div>
+{% endblock %}

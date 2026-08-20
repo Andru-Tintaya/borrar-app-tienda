@@ -1,0 +1,156 @@
+/* ============================================================
+   ESTILOS GENERALES Y BOTONES NAHARA
+   ============================================================ */
+.btn-nahara {
+    background-color: #1a1a1a;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+}
+
+.btn-nahara:hover {
+    background-color: #333333;
+    color: #ffffff;
+}
+
+/* ============================================================
+   TARJETAS DE CATEGORÍA (Verticales y centradas)
+   ============================================================ */
+.categoria-tile {
+    position: relative;
+    height: 360px;
+    /* Formato rectangular vertical */
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: #f8f9fa;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.categoria-tile:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.categoria-tile img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* Ajusta imágenes cuadradas u horizontales sin deformar */
+    object-position: center;
+}
+
+.categoria-tile-sinfoto {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    background: #e9ecef;
+    color: #495057;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.categoria-tile-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.75) 0%, rgba(0, 0, 0, 0.1) 60%, transparent 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 20px;
+    color: #ffffff;
+}
+
+.categoria-tile-nombre {
+    font-size: 1.25rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.categoria-tile-explorar {
+    font-size: 0.875rem;
+    color: #f8f9fa;
+    opacity: 0.85;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.categoria-tile:hover .categoria-tile-explorar {
+    opacity: 1;
+    transform: translateX(4px);
+}
+
+/* ============================================================
+   TARJETAS DE PRODUCTOS Y BADGES
+   ============================================================ */
+.tarjeta-producto {
+    border: 1px solid #eee;
+    border-radius: 10px;
+    overflow: hidden;
+    transition: transform 0.2s ease;
+}
+
+.tarjeta-producto:hover {
+    transform: translateY(-3px);
+}
+
+.badges-producto {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    z-index: 2;
+}
+
+/* Tamaño compacto, tipografía y bordes redondeados tipo píldora */
+.badge-producto,
+.badge-status,
+.card-img-container .badge {
+    padding: 3px 8px !important;
+    font-size: 0.7rem !important;
+    font-weight: 700 !important;
+    border-radius: 50rem !important;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    line-height: 1.2;
+    display: inline-block;
+}
+
+/* Asignación de Colores Solicitados */
+.badge-destacado {
+    background-color: #ffc107 !important;
+    /* Amarillo */
+    color: #000000 !important;
+    /* Texto oscuro */
+}
+
+.badge-oferta {
+    background-color: #dc3545 !important;
+    /* Rojo */
+    color: #ffffff !important;
+}
+
+.badge-nuevo {
+    background-color: #198754 !important;
+    /* Verde */
+    color: #ffffff !important;
+}
+
+.badge-mas-vendido {
+    background-color: #0d6efd !important;
+    /* Azul */
+    color: #ffffff !important;
+}
+
+.badge-inactivo {
+    background-color: #6c757d !important;
+    /* Gris */
+    color: #ffffff !important;
+}

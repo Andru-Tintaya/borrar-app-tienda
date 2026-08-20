@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Aprobaciones B2B - NAHARA{% endblock %}
+{% block content %}
+<h2 class="mb-4">Cuentas B2B pendientes de aprobación</h2>
+
+<table class="table table-bordered bg-white align-middle">
+    <thead class="table-dark">
+        <tr>
+            <th>Cliente</th>
+            <th>Correo</th>
+            <th>Nivel solicitado</th>
+            <th>NIT/CI</th>
+            <th>Razón social</th>
+            <th class="text-end">Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for c in pendientes %}
+        <tr>
+            <td>{{ c.nombre }}</td>
+            <td>{{ c.correo }}</td>
+            <td>{{ c.nivel_b2b_solicitado }}</td>
+            <td>{{ c.nit_ci }}</td>
+            <td>{{ c.razon_social }}</td>
+            <td class="text-end">
+                <form method="POST" action="{{ url_for('usuarios.aprobar_b2b', usuario_id=c.id) }}" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-sm btn-nahara">Aprobar</button>
+                </form>
+                <form method="POST" action="{{ url_for('usuarios.rechazar_b2b', usuario_id=c.id) }}" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Rechazar</button>
+                </form>
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="text-center text-muted">No hay solicitudes pendientes.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+<a href="{{ url_for('usuarios.listar_personal') }}" class="d-block mt-3">Volver al listado de personal</a>
+{% endblock %}

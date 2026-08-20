@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Pedidos - NAHARA{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Pedidos</h2>
+    <form method="GET" class="d-flex gap-2">
+        <select name="estado" class="form-select form-select-sm" onchange="this.form.submit()">
+            <option value="">Todos los estados</option>
+            {% for e in estados %}
+            <option value="{{ e }}" {% if estado_filtro == e %}selected{% endif %}>{{ e }}</option>
+            {% endfor %}
+        </select>
+    </form>
+</div>
+
+<table class="table table-bordered bg-white align-middle">
+    <thead class="table-dark">
+        <tr><th>#</th><th>Cliente</th><th>Tarifa</th><th>Entrega</th><th>Total</th><th>Estado</th><th>Fecha</th><th class="text-end">Acciones</th></tr>
+    </thead>
+    <tbody>
+        {% for p in pedidos %}
+        <tr>
+            <td>{{ p.id }}</td>
+            <td>{{ p.usuario.nombre }}</td>
+            <td>{{ p.nivel_precio }}</td>
+            <td>{{ p.tipo_entrega }}</td>
+            <td>Bs. {{ "%.2f"|format(p.total) }}</td>
+            <td>
+                {% if p.estado == "Pendiente" or p.estado == "Pendiente de verificación" %}
+                    <span class="badge bg-warning text-dark">Pendiente</span>
+                {% elif p.estado == "Pagado" %}
+                    <span class="badge bg-info text-dark">Pagado</span>
+                {% elif p.estado == "Despachado" %}
+                    <span class="badge bg-primary">Despachado</span>
+                {% elif p.estado == "En Tránsito" %}
+                    <span class="badge bg-warning text-dark">En Tránsito</span>
+                {% elif p.estado == "Entregado" %}
+                    <span class="badge bg-success">Entregado</span>
+                {% elif p.estado == "Rechazado" %}
+                    <span class="badge bg-danger">Rechazado</span>
+                {% else %}
+                    <span class="badge bg-secondary">{{ p.estado }}</span>
+                {% endif %}
+            </td>
+            <td>{{ p.fecha_creacion.strftime("%Y-%m-%d %H:%M") }}</td>
+            <td class="text-end">
+                <a href="{{ url_for('pedidos.detalle', pedido_id=p.id) }}" class="btn btn-sm btn-outline-dark">Ver</a>
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="text-center text-muted">No hay pedidos registrados.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+<a href="{{ url_for('dashboard.index') }}" class="d-block mt-3">Volver al dashboard</a>
+{% endblock %}

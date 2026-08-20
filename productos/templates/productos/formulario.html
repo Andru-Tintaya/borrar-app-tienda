@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+{% block title %}{{ "Nuevo" if modo == "nuevo" else "Editar" }} producto - NAHARA{% endblock %}
+{% block content %}
+<h2 class="mb-4">{{ "Nuevo producto" if modo == "nuevo" else "Editar: " + producto.nombre }}</h2>
+
+<form method="POST" enctype="multipart/form-data" novalidate>
+    {{ formulario.hidden_tag() }}
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-3">
+                <div class="card-header">Datos del producto</div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8 mb-3">
+                            {{ formulario.nombre.label(class="form-label") }}
+                            {{ formulario.nombre(class="form-control") }}
+                            {% for error in formulario.nombre.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">SKU / Código</label>
+                            {% if producto %}
+                                <input type="text" class="form-control" value="{{ producto.sku }}" disabled>
+                            {% else %}
+                                <input type="text" class="form-control" value="Se genera al guardar" disabled>
+                            {% endif %}
+                            <div class="form-text">Se genera automáticamente, no se escribe a mano.</div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            {{ formulario.categoria_id.label(class="form-label") }}
+                            {{ formulario.categoria_id(class="form-select", id="selectCategoria") }}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            {{ formulario.subcategoria_id.label(class="form-label") }}
+                            {{ formulario.subcategoria_id(class="form-select", id="selectSubcategoria") }}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            {{ formulario.color_id.label(class="form-label") }}
+                            {{ formulario.color_id(class="form-select") }}
+                        </div>
+                    </div>
+                    <div class="mb-0">
+                        {{ formulario.descripcion.label(class="form-label") }}
+                        {{ formulario.descripcion(class="form-control", rows=3) }}
+                    </div>
+                </div>
+            </div>
+
+            {% if puede_ver_costo %}
+            <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>Precios (en USD — el sistema calcula el equivalente en Bs.)</span>
+                    <span class="badge bg-dark">Tipo de cambio hoy: {{ tipo_cambio }} Bs./USD</span>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-end mb-3">
+                        <div class="col-md-4">
+                            {{ formulario.precio_compra_usd.label(class="form-label") }}
+                            {{ formulario.precio_compra_usd(class="form-control campo-usd", **{"data-bob-target": "bobPrecioCompra"}) }}
+                            {% for error in formulario.precio_compra_usd.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small">Equivalente en Bs.</label>
+                            <input type="number" step="0.01" class="form-control campo-bob" id="bobPrecioCompra" data-usd-target="{{ formulario.precio_compra_usd.id }}">
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-text">Solo lo ven Gerencia y Administración.</div>
+                        </div>
+                    </div>
+
+                    <hr>
+                    <p class="fw-bold mb-3">Matriz de 4 precios de venta</p>
+
+                    {% for campo, id_habilitado, etiqueta in [
+                        (formulario.precio_minorista_usd, "minorista_habilitado", "Minorista"),
+                        (formulario.precio_mayorista_usd, "mayorista_habilitado", "Mayorista"),
+                        (formulario.precio_franquicia_usd, "franquicia_habilitado", "Franquicia"),
+                        (formulario.precio_asesora_libre_usd, "asesora_libre_habilitado", "Asesora Libre"),
+                    ] %}
+                    <div class="row align-items-end mb-3">
+                        <div class="col-md-4">
+                            {{ campo.label(class="form-label") }}
+                            {{ campo(class="form-control campo-usd", **{"data-bob-target": "bob_" + campo.id}) }}
+                            {% for error in campo.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small">Equivalente en Bs.</label>
+                            <input type="number" step="0.01" class="form-control campo-bob" id="bob_{{ campo.id }}" data-usd-target="{{ campo.id }}">
+                        </div>
+                        <div class="col-md-4 form-check pt-4">
+                            {{ formulario[id_habilitado](class="form-check-input") }}
+                            {{ formulario[id_habilitado].label(class="form-check-label") }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            <div class="card mb-3">
+                <div class="card-header">Precios</div>
+                <div class="card-body">
+                    <p class="small text-muted mb-2">Tipo de cambio hoy: {{ tipo_cambio }} Bs./USD</p>
+                    {% for nivel in ["Minorista", "Mayorista", "Franquicia", "Asesora Libre"] %}
+                    <p class="mb-1">
+                        {{ nivel }}: <strong>Bs. {{ "%.2f"|format(producto.precio_usd_por_nivel(nivel) * tipo_cambio) }}</strong>
+                        (USD {{ "%.2f"|format(producto.precio_usd_por_nivel(nivel)) }})
+                        {% if not producto.nivel_habilitado(nivel) %}<span class="badge bg-secondary">No disponible</span>{% endif %}
+                    </p>
+                    {% endfor %}
+                    <p class="small text-muted mt-2 mb-0">El Precio de Compra y la edición de precios solo están disponibles para Gerencia/Administración.</p>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="card mb-3">
+                <div class="card-header">Inventario</div>
+                <div class="card-body">
+                    <div class="col-md-4">
+                        {{ formulario.stock.label(class="form-label") }}
+                        {{ formulario.stock(class="form-control") }}
+                        {% for error in formulario.stock.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-header">Fotografías</div>
+                <div class="card-body">
+                    {% if producto and producto.imagenes %}
+                    <div class="row g-2 mb-3">
+                        {% for img in producto.imagenes %}
+                        <div class="col-3">
+                            <div class="border rounded p-1 text-center">
+                                <img src="{{ url_for('static', filename=img.ruta_archivo) }}" style="width:100%;height:80px;object-fit:cover;">
+                                {% if img.es_principal %}
+                                    <div class="small text-success">Principal</div>
+                                {% else %}
+                                    <form method="POST" action="{{ url_for('productos.marcar_principal', producto_id=producto.id, imagen_id=img.id) }}">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-link btn-sm p-0">Hacer principal</button>
+                                    </form>
+                                {% endif %}
+                                <form method="POST" action="{{ url_for('productos.eliminar_imagen', producto_id=producto.id, imagen_id=img.id) }}">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-link btn-sm text-danger p-0">Eliminar</button>
+                                </form>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    <label class="form-label">Agregar fotos (puedes seleccionar varias, se ven en carrusel en la tienda)</label>
+                    <input type="file" name="fotos" class="form-control" multiple accept="image/png,image/jpeg,image/webp">
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <div class="mb-3 form-check">
+                        {{ formulario.activo(class="form-check-input") }}
+                        {{ formulario.activo.label(class="form-check-label") }}
+                        <div class="form-text">Si lo desmarcas, solo el personal interno lo verá (como "Inactivo").</div>
+                    </div>
+
+                    <hr>
+                    <p class="fw-bold mb-2">Etiquetas de estado (puedes combinar varias)</p>
+                    <p class="small text-muted">"Nuevo" se activa solo durante los primeros 30 días desde que se crea el producto — no se marca aquí.</p>
+                    <div class="mb-2 form-check">
+                        {{ formulario.es_destacado(class="form-check-input") }}
+                        {{ formulario.es_destacado.label(class="form-check-label") }}
+                    </div>
+                    <div class="mb-2 form-check">
+                        {{ formulario.en_oferta(class="form-check-input", id="checkEnOferta") }}
+                        {{ formulario.en_oferta.label(class="form-check-label") }}
+                    </div>
+                    <div class="mb-3" id="campoPorcentaje">
+                        {{ formulario.porcentaje_descuento.label(class="form-label small") }}
+                        {{ formulario.porcentaje_descuento(class="form-control form-control-sm") }}
+                        {% for error in formulario.porcentaje_descuento.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                    </div>
+                    <p class="small text-muted">"Más Vendido" se calcula solo, según las ventas reales — no se marca aquí.</p>
+
+                    {{ formulario.submit(class="btn btn-nahara w-100") }}
+                    <a href="{{ url_for('productos.listar') }}" class="btn btn-outline-dark w-100 mt-2">Volver al listado</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+    const checkOferta = document.getElementById('checkEnOferta');
+    const campoPorcentaje = document.getElementById('campoPorcentaje');
+    function actualizarCampoPorcentaje() {
+        campoPorcentaje.style.display = checkOferta.checked ? 'block' : 'none';
+    }
+    checkOferta.addEventListener('change', actualizarCampoPorcentaje);
+    actualizarCampoPorcentaje();
+
+    // --- Subcategorías dependientes de la categoría elegida (AJAX) ---
+    const selectCategoria = document.getElementById('selectCategoria');
+    const selectSubcategoria = document.getElementById('selectSubcategoria');
+    const subcategoriaActualId = {{ (producto.subcategoria_id if producto else 0) | tojson }};
+
+    function cargarSubcategorias(categoriaId, subcategoriaSeleccionada) {
+        selectSubcategoria.innerHTML = '<option value="0">— Sin subcategoría —</option>';
+        if (!categoriaId) return;
+        fetch(`/categorias/api/subcategorias-por-categoria/${categoriaId}`)
+            .then(function (respuesta) { return respuesta.json(); })
+            .then(function (subcategorias) {
+                subcategorias.forEach(function (sub) {
+                    const opcion = document.createElement('option');
+                    opcion.value = sub.id;
+                    opcion.textContent = sub.nombre;
+                    if (subcategoriaSeleccionada && sub.id === subcategoriaSeleccionada) opcion.selected = true;
+                    selectSubcategoria.appendChild(opcion);
+                });
+            });
+    }
+    selectCategoria.addEventListener('change', function () { cargarSubcategorias(this.value, null); });
+    cargarSubcategorias(selectCategoria.value, subcategoriaActualId);
+
+    {% if puede_ver_costo %}
+    // --- Sincronización USD <-> Bs. para cada precio (bidireccional) ---
+    const TIPO_CAMBIO = {{ tipo_cambio }};
+
+    document.querySelectorAll('.campo-usd').forEach(function (campoUsd) {
+        const campoBob = document.getElementById(campoUsd.dataset.bobTarget);
+        if (!campoBob) return;
+
+        // Carga inicial: si ya hay un valor en USD (editar producto), calcular el Bs. equivalente
+        if (campoUsd.value) {
+            campoBob.value = (parseFloat(campoUsd.value) * TIPO_CAMBIO).toFixed(2);
+        }
+
+        campoUsd.addEventListener('input', function () {
+            const usd = parseFloat(campoUsd.value);
+            campoBob.value = isNaN(usd) ? '' : (usd * TIPO_CAMBIO).toFixed(2);
+        });
+        campoBob.addEventListener('input', function () {
+            const bob = parseFloat(campoBob.value);
+            campoUsd.value = isNaN(bob) ? '' : (bob / TIPO_CAMBIO).toFixed(2);
+        });
+    });
+    {% endif %}
+</script>
+{% endblock %}

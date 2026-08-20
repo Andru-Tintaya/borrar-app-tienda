@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}{{ "Nueva" if modo == "nueva" else "Editar" }} categoría - NAHARA{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <h2 class="mb-4">{{ "Nueva categoría" if modo == "nueva" else "Editar categoría" }}</h2>
+        <form method="POST" enctype="multipart/form-data" novalidate>
+            {{ formulario.hidden_tag() }}
+            <div class="mb-3">
+                {{ formulario.nombre.label(class="form-label") }}
+                {{ formulario.nombre(class="form-control") }}
+                {% for error in formulario.nombre.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Imagen representativa</label>
+                {% if categoria and categoria.imagen %}
+                    <img src="{{ url_for('static', filename=categoria.imagen) }}" style="width:120px;height:80px;object-fit:cover;" class="d-block mb-2 rounded border">
+                {% endif %}
+                <input type="file" name="imagen" class="form-control" accept="image/png,image/jpeg,image/webp">
+                <div class="form-text">Se muestra en la página de inicio como recuadro de categoría.</div>
+            </div>
+            <div class="mb-3 form-check">
+                {{ formulario.activo(class="form-check-input") }}
+                {{ formulario.activo.label(class="form-check-label") }}
+            </div>
+            {{ formulario.submit(class="btn btn-nahara w-100") }}
+        </form>
+        <a href="{{ url_for('categorias.listar') }}" class="d-block text-center mt-3">Volver</a>
+    </div>
+</div>
+{% endblock %}

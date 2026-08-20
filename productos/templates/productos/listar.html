@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Productos - NAHARA{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Productos</h2>
+    <div>
+        <a href="{{ url_for('productos.promociones') }}" class="btn btn-outline-dark">Promociones masivas</a>
+        {% if current_user.tiene_rol("Gerente", "Administrador") %}
+        <a href="{{ url_for('productos.nuevo') }}" class="btn btn-nahara">Nuevo producto</a>
+        {% endif %}
+    </div>
+</div>
+<p class="text-muted small">Tipo de cambio hoy: <strong>{{ tipo_cambio }} Bs./USD</strong></p>
+
+<table class="table table-bordered bg-white align-middle">
+    <thead class="table-dark">
+        <tr>
+            <th>Foto</th>
+            <th>SKU</th>
+            <th>Nombre</th>
+            <th>Categoría</th>
+            {% if puede_ver_costo %}<th>P. Compra</th>{% endif %}
+            <th>Minorista</th>
+            <th>Mayorista</th>
+            <th>Franquicia</th>
+            <th>Asesora Libre</th>
+            <th>Stock</th>
+            <th>Estado</th>
+            <th class="text-end">Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for p in productos %}
+        <tr>
+            <td>
+                {% if p.imagen_principal %}
+                    <img src="{{ url_for('static', filename=p.imagen_principal.ruta_archivo) }}" alt="{{ p.nombre }}" style="width:48px;height:48px;object-fit:cover;">
+                {% else %}
+                    <span class="text-muted small">Sin foto</span>
+                {% endif %}
+            </td>
+            <td>{{ p.sku }}</td>
+            <td>{{ p.nombre }}</td>
+            <td>{{ p.categoria.nombre }}</td>
+            {% if puede_ver_costo %}<td>${{ "%.2f"|format(p.precio_compra_usd) }}</td>{% endif %}
+            {% for nivel, habilitado in [("Minorista", p.minorista_habilitado), ("Mayorista", p.mayorista_habilitado), ("Franquicia", p.franquicia_habilitado), ("Asesora Libre", p.asesora_libre_habilitado)] %}
+            <td>
+                {% if habilitado %}
+                    Bs. {{ "%.2f"|format(p.precio_usd_por_nivel(nivel) * tipo_cambio) }}
+                    <div class="small text-muted">${{ "%.2f"|format(p.precio_usd_por_nivel(nivel)) }}</div>
+                {% else %}
+                    <span class="text-muted small">No disponible</span>
+                {% endif %}
+            </td>
+            {% endfor %}
+            <td>{{ p.stock }}</td>
+            <td>
+                {% if p.activo %}<span class="badge bg-success">Activo</span>{% else %}<span class="badge bg-secondary">Inactivo</span>{% endif %}
+                {% if p.es_nuevo %}<span class="badge" style="background-color:#f4ca00;color:#111;">Nuevo</span>{% endif %}
+                {% if p.es_destacado %}<span class="badge bg-dark">Destacado</span>{% endif %}
+                {% if p.en_oferta %}<span class="badge bg-danger">-{{ p.porcentaje_descuento|int }}%</span>{% endif %}
+                {% if p.id in ids_mas_vendidos %}<span class="badge bg-primary">Más vendido</span>{% endif %}
+            </td>
+            <td class="text-end">
+                <a href="{{ url_for('productos.editar', producto_id=p.id) }}" class="btn btn-sm btn-outline-dark">Editar</a>
+                {% if puede_ver_costo %}
+                <form method="POST" action="{{ url_for('productos.eliminar', producto_id=p.id) }}" class="d-inline" onsubmit="return confirm('¿Eliminar {{ p.nombre }}? Esta acción no se puede deshacer.');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
+                </form>
+                {% endif %}
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="12" class="text-center text-muted">No hay productos registrados.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+<a href="{{ url_for('dashboard.index') }}" class="d-block mt-3">Volver al dashboard</a>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Pedido confirmado - NAHARA{% endblock %}
+{% block content %}
+<div class="text-center py-5">
+    <h2>¡Gracias por tu pedido, {{ current_user.nombre }}!</h2>
+    <p class="text-muted">Pedido #{{ pedido.id }} — Estado: {{ pedido.estado }}</p>
+    <p>Verificaremos tu comprobante de pago y te contactaremos a {{ current_user.telefono }} para coordinar
+        {{ "el envío" if pedido.tipo_entrega == "Envio" else "el retiro en tienda" }}.</p>
+    {% if pedido.costo_envio and pedido.costo_envio > 0 %}
+    <p class="text-muted mb-0">Subtotal: Bs. {{ "%.2f"|format(pedido.subtotal) }} + Envío ({{ pedido.metodo_envio_nombre }}): Bs. {{ "%.2f"|format(pedido.costo_envio) }}</p>
+    {% endif %}
+    <h4 class="mt-3">Total: Bs. {{ "%.2f"|format(pedido.total) }}</h4>
+    <a href="{{ url_for('tienda.catalogo') }}" class="btn btn-nahara mt-3">Seguir comprando</a>
+</div>
+{% endblock %}

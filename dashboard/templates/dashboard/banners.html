@@ -1,0 +1,1027 @@
+{% extends "base.html" %}
+{% block title %}Gestión de Banners - NAHARA{% endblock %}
+
+{% block head_extra %}
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<style>
+    /* ================================================================
+       ESTILOS PARA GESTIÓN DE BANNERS
+       ================================================================ */
+    .banner-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+
+    .banner-card {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.2s ease;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        position: relative;
+        cursor: grab;
+    }
+
+    .banner-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+    }
+
+    .banner-card.dragging {
+        opacity: 0.5;
+        transform: scale(0.95);
+    }
+
+    .banner-card .banner-img {
+        width: 100%;
+        height: 150px;
+        object-fit: cover;
+        background: #f1f5f9;
+    }
+
+    .banner-card .banner-body {
+        padding: 14px 16px;
+    }
+
+    .banner-card .banner-body .banner-title {
+        font-weight: 700;
+        font-size: 15px;
+        color: #0f172a;
+        margin: 0 0 4px;
+    }
+
+    .banner-card .banner-body .banner-subtitle {
+        font-size: 13px;
+        color: #64748b;
+        margin-bottom: 6px;
+    }
+
+    .banner-card .banner-body .banner-meta {
+        font-size: 11px;
+        color: #94a3b8;
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 6px;
+    }
+
+    .banner-card .banner-actions {
+        display: flex;
+        gap: 6px;
+        padding: 10px 16px;
+        border-top: 1px solid #f1f5f9;
+        background: #f8fafc;
+        flex-wrap: wrap;
+    }
+
+    .banner-card .banner-actions .btn-sm {
+        padding: 4px 12px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .btn-edit {
+        background: #eff6ff;
+        color: #1e40af;
+    }
+    .btn-edit:hover { background: #dbeafe; }
+
+    .btn-toggle {
+        background: #f1f5f9;
+        color: #64748b;
+    }
+    .btn-toggle:hover { background: #e2e8f0; }
+    .btn-toggle.active { background: #d1fae5; color: #065f46; }
+
+    .btn-delete {
+        background: #fef2f2;
+        color: #dc2626;
+    }
+    .btn-delete:hover { background: #fee2e2; }
+
+    .drag-handle {
+        cursor: grab;
+        color: #94a3b8;
+        font-size: 18px;
+        padding: 4px 8px;
+    }
+
+    .drag-handle:active { cursor: grabbing; }
+
+    .banner-card.inactive {
+        opacity: 0.6;
+        border-color: #e2e8f0;
+    }
+
+    .banner-card.inactive .banner-img {
+        filter: grayscale(0.6);
+    }
+
+    /* Modal */
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding: 16px;
+    }
+
+    .modal-overlay.hidden {
+        display: none !important;
+    }
+
+    .modal-content {
+        background: #fff;
+        border-radius: 16px;
+        max-width: 560px;
+        width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+        padding: 24px 28px;
+        animation: modalIn 0.25s ease;
+    }
+
+    @keyframes modalIn {
+        from { transform: scale(0.95) translateY(10px); opacity: 0; }
+        to { transform: scale(1) translateY(0); opacity: 1; }
+    }
+
+    .modal-content .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+
+    .modal-content .modal-header h2 {
+        font-size: 18px;
+        font-weight: 700;
+        color: #0f172a;
+        margin: 0;
+    }
+
+    .modal-content .modal-close {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: #94a3b8;
+        padding: 0 8px;
+    }
+
+    .modal-content .modal-close:hover { color: #0f172a; }
+
+    .form-group {
+        margin-bottom: 14px;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        font-size: 13px;
+        color: #0f172a;
+        margin-bottom: 4px;
+    }
+
+    .form-group .hint {
+        font-size: 11px;
+        color: #94a3b8;
+        font-weight: 400;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 13px;
+        transition: border 0.2s ease;
+        font-family: inherit;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+        border-color: #3b82f6;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .form-group textarea { resize: vertical; min-height: 60px; }
+
+    .form-group .checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .form-group .checkbox-group input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        accent-color: #1e40af;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 16px;
+    }
+
+    .btn-primary {
+        background: #1e40af;
+        color: #fff;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-primary:hover { background: #1d4ed8; }
+
+    .btn-secondary {
+        background: #f1f5f9;
+        color: #64748b;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-secondary:hover { background: #e2e8f0; }
+
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #94a3b8;
+    }
+
+    .empty-state i {
+        font-size: 48px;
+        display: block;
+        margin-bottom: 12px;
+        opacity: 0.4;
+    }
+
+    /* Drop Zone */
+    .drop-zone {
+        border: 2px dashed #e2e8f0;
+        border-radius: 8px;
+        padding: 20px 16px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: #fafbfc;
+    }
+
+    .drop-zone:hover {
+        border-color: #3b82f6;
+        background: #eff6ff;
+    }
+
+    .drop-zone.dragover {
+        border-color: #3b82f6;
+        background: #eff6ff;
+    }
+
+    .drop-zone .icon {
+        font-size: 28px;
+        color: #94a3b8;
+    }
+
+    .drop-zone .text {
+        font-size: 13px;
+        color: #64748b;
+        margin-top: 4px;
+    }
+
+    .drop-zone .text strong {
+        color: #0f172a;
+    }
+
+    .drop-zone .subtext {
+        font-size: 11px;
+        color: #94a3b8;
+    }
+
+    .image-preview-container {
+        display: none;
+        margin-top: 10px;
+        position: relative;
+        width: 100%;
+        max-width: 200px;
+    }
+
+    .image-preview-container .preview-img {
+        width: 100%;
+        border-radius: 8px;
+        border: 2px solid #e2e8f0;
+        max-height: 150px;
+        object-fit: cover;
+    }
+
+    .image-preview-container .btn-remove {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background: #dc2626;
+        color: #fff;
+        border: none;
+        border-radius: 50%;
+        width: 28px;
+        height: 28px;
+        cursor: pointer;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        transition: all 0.2s ease;
+    }
+
+    .image-preview-container .btn-remove:hover {
+        background: #b91c1c;
+        transform: scale(1.05);
+    }
+
+    /* Toast */
+    #toast {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #0f172a;
+        color: #fff;
+        padding: 12px 20px;
+        border-radius: 12px;
+        z-index: 9999;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+        font-size: 14px;
+        max-width: 400px;
+        display: none;
+        border-left: 4px solid #10b981;
+    }
+
+    #toast.error {
+        border-left-color: #dc2626;
+        background: #7f1d1d;
+    }
+
+    #toast.info {
+        border-left-color: #3b82f6;
+        background: #1e3a5f;
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+        .banner-grid {
+            grid-template-columns: 1fr;
+        }
+        .modal-content {
+            padding: 16px;
+        }
+        .banner-card .banner-img {
+            height: 120px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-1">
+                <i class="fas fa-images" style="color: #1e40af;"></i> Gestión de Banners
+            </h1>
+            <p class="text-muted small mb-0">Administra el carrusel principal de la tienda</p>
+        </div>
+        <button id="btn-nuevo-banner" class="btn btn-nahara">
+            <i class="fas fa-plus"></i> Nuevo Banner
+        </button>
+    </div>
+
+    <!-- Grid de Banners -->
+    <div id="banner-grid" class="banner-grid"></div>
+
+    <!-- ============================================================
+    MODAL - NUEVO / EDITAR BANNER CON SUBIDA DE IMÁGENES
+    ============================================================ -->
+    <div id="banner-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Nuevo Banner</h2>
+                <button class="modal-close" id="modal-close">&times;</button>
+            </div>
+
+            <input type="hidden" id="banner-id">
+
+            <div class="form-group">
+                <label>Título <span style="color: #dc2626;">*</span></label>
+                <input type="text" id="banner-titulo" placeholder="Ej. Nueva Colección 2026" maxlength="100">
+            </div>
+
+            <div class="form-group">
+                <label>Subtítulo</label>
+                <input type="text" id="banner-subtitulo" placeholder="Ej. Lo mejor de la temporada" maxlength="200">
+            </div>
+
+            <div class="form-group">
+                <label>Texto adicional</label>
+                <textarea id="banner-texto" rows="2" placeholder="Descripción del banner..." maxlength="300"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Texto del botón</label>
+                <input type="text" id="banner-boton-texto" placeholder="Ej. Ver más">
+            </div>
+
+            <div class="form-group">
+                <label>Enlace del botón</label>
+                <input type="text" id="banner-boton-enlace" placeholder="Ej. https://tiendanahara.com/ofertas">
+                <span class="hint">Deja vacío si no quieres botón</span>
+            </div>
+
+            <!-- ============================================================
+            SECCIÓN DE IMAGEN - SUBIDA DE ARCHIVO O URL (OPCIONAL)
+            ============================================================ -->
+            <div class="form-group">
+                <label>Imagen del banner <span style="color: #94a3b8; font-weight: 400;">(opcional)</span></label>
+                
+                <!-- Drop Zone para subir archivo -->
+                <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+                    <div class="icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                    <div class="text">
+                        <strong>Haz clic para seleccionar una imagen</strong>
+                    </div>
+                    <div class="subtext">O arrastra la imagen aquí (JPG, PNG, GIF, WEBP)</div>
+                    <input type="file" id="file-input" accept="image/*" style="display:none;" onchange="handleFileSelect(event)">
+                </div>
+
+                <!-- Vista previa de la imagen -->
+                <div class="image-preview-container" id="image-preview-container">
+                    <img class="preview-img" id="image-preview" src="" alt="Vista previa">
+                    <button type="button" class="btn-remove" onclick="removeImage()" title="Eliminar imagen">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <!-- Alternativa: Pegar URL -->
+                <div style="margin-top: 10px;">
+                    <span style="font-size: 12px; color: #94a3b8;">O pega la URL de la imagen:</span>
+                    <input type="text" id="banner-imagen" placeholder="https://ejemplo.com/imagen.jpg" style="margin-top: 4px;">
+                </div>
+
+                <span class="hint">Puedes subir una imagen desde tu computadora, pegar una URL o dejar sin imagen</span>
+            </div>
+
+            <div class="form-group">
+                <label>Orden</label>
+                <input type="number" id="banner-orden" value="0" min="0">
+                <span class="hint">Número más bajo = aparece primero</span>
+            </div>
+
+            <div class="form-group">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="banner-activo" checked>
+                    <label style="margin-bottom: 0; font-weight: 500;">Activo</label>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button id="btn-guardar-banner" class="btn-primary">
+                    <i class="fas fa-save"></i> Guardar
+                </button>
+                <button id="btn-cancelar-modal" class="btn-secondary">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast"></div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        let banners = [];
+        let editingId = null;
+        let selectedFile = null;
+        let tempImageUrl = null;
+
+        // ================================================================
+        // OBTENER TOKEN CSRF
+        // ================================================================
+        function getCsrfToken() {
+            return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        }
+
+        // ================================================================
+        // TOAST
+        // ================================================================
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = type;
+            toast.style.display = 'block';
+            clearTimeout(toast._timeout);
+            toast._timeout = setTimeout(() => { toast.style.display = 'none'; }, 3000);
+        }
+
+        // ================================================================
+        // SUBIDA DE IMÁGENES
+        // ================================================================
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                processImageFile(file);
+            }
+        }
+
+        function processImageFile(file) {
+            if (!file.type.startsWith('image/')) {
+                showToast('Por favor selecciona una imagen válida', 'error');
+                return;
+            }
+
+            if (file.size > 5 * 1024 * 1024) {
+                showToast('La imagen es demasiado grande. Máximo 5MB.', 'error');
+                return;
+            }
+
+            selectedFile = file;
+            tempImageUrl = null;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('image-preview').src = e.target.result;
+                document.getElementById('image-preview-container').style.display = 'block';
+                document.getElementById('banner-imagen').value = '';
+                document.getElementById('drop-zone').style.borderColor = '#10b981';
+                showToast('Imagen seleccionada correctamente', 'success');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeImage() {
+            selectedFile = null;
+            tempImageUrl = null;
+            document.getElementById('image-preview-container').style.display = 'none';
+            document.getElementById('image-preview').src = '';
+            document.getElementById('file-input').value = '';
+            document.getElementById('banner-imagen').value = '';
+            document.getElementById('drop-zone').style.borderColor = '#e2e8f0';
+        }
+
+        function uploadImage(file) {
+            return new Promise((resolve, reject) => {
+                const formData = new FormData();
+                formData.append('image', file);
+
+                fetch('/dashboard/api/upload-banner', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        resolve(data.url);
+                    } else {
+                        reject(data.message || 'Error al subir la imagen');
+                    }
+                })
+                .catch(err => {
+                    reject(err.message);
+                });
+            });
+        }
+
+        // Drag & Drop
+        const dropZone = document.getElementById('drop-zone');
+        if (dropZone) {
+            dropZone.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.classList.add('dragover');
+            });
+            dropZone.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                this.classList.remove('dragover');
+            });
+            dropZone.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    processImageFile(files[0]);
+                }
+            });
+        }
+
+        // ================================================================
+        // CARGAR BANNERS
+        // ================================================================
+        function cargarBanners() {
+            fetch('/dashboard/api/banners')
+                .then(res => res.json())
+                .then(data => {
+                    banners = data;
+                    renderBanners(data);
+                })
+                .catch(err => {
+                    showToast('Error al cargar banners: ' + err.message, 'error');
+                });
+        }
+
+        // ================================================================
+        // RENDER BANNERS
+        // ================================================================
+        function renderBanners(lista) {
+            const grid = document.getElementById('banner-grid');
+            
+            if (!lista || lista.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1 / -1;">
+                        <i class="fas fa-images"></i>
+                        <p style="font-size: 16px; font-weight: 500; color: #64748b;">No hay banners creados</p>
+                        <p style="font-size: 13px;">Haz clic en "Nuevo Banner" para agregar tu primer banner al carrusel.</p>
+                    </div>
+                `;
+                return;
+            }
+        
+            grid.innerHTML = '';
+            lista.forEach((b, index) => {
+                const card = document.createElement('div');
+                card.className = `banner-card ${!b.activo ? 'inactive' : ''}`;
+                card.dataset.id = b.id;
+                card.draggable = true;
+        
+                // ✅ CORREGIDO: Sin placeholder externo, sin bucle de imágenes
+                const imagenHtml = b.imagen ? 
+                    `<img class="banner-img" src="${b.imagen}" alt="${b.titulo}" onerror="this.style.display='none'">` :
+                    `<div class="banner-img" style="display:flex;align-items:center;justify-content:center;background:#f1f5f9;color:#94a3b8;font-size:12px;">Sin imagen</div>`;
+        
+                card.innerHTML = `
+                    <div style="display: flex; align-items: center; padding: 8px 12px 0; gap: 8px;">
+                        <span class="drag-handle" title="Arrastrar para reordenar"><i class="fas fa-grip-vertical"></i></span>
+                        <span style="font-size: 11px; color: #94a3b8;">#${index + 1}</span>
+                        <span style="font-size: 10px; padding: 2px 10px; border-radius: 20px; background: ${b.activo ? '#d1fae5' : '#f1f5f9'}; color: ${b.activo ? '#065f46' : '#94a3b8'};">
+                            ${b.activo ? 'Activo' : 'Inactivo'}
+                        </span>
+                    </div>
+                    ${imagenHtml}
+                    <div class="banner-body">
+                        <div class="banner-title">${b.titulo || 'Sin título'}</div>
+                        ${b.subtitulo ? `<div class="banner-subtitle">${b.subtitulo}</div>` : ''}
+                        ${b.texto ? `<div style="font-size: 12px; color: #64748b; margin-bottom: 4px;">${b.texto}</div>` : ''}
+                        <div class="banner-meta">
+                            <span><i class="far fa-hashtag"></i> Orden: ${b.orden || 0}</span>
+                            ${b.boton_texto ? `<span><i class="far fa-link"></i> ${b.boton_texto}</span>` : ''}
+                        </div>
+                    </div>
+                    <div class="banner-actions">
+                        <button class="btn-sm btn-edit" data-id="${b.id}"><i class="fas fa-edit"></i> Editar</button>
+                        <button class="btn-sm btn-toggle ${b.activo ? 'active' : ''}" data-id="${b.id}">
+                            <i class="fas ${b.activo ? 'fa-eye' : 'fa-eye-slash'}"></i> ${b.activo ? 'Ocultar' : 'Mostrar'}
+                        </button>
+                        <button class="btn-sm btn-delete" data-id="${b.id}"><i class="fas fa-trash"></i> Eliminar</button>
+                    </div>
+                `;
+        
+                grid.appendChild(card);
+            });
+        
+            // Eventos
+            document.querySelectorAll('.btn-edit').forEach(btn => {
+                btn.addEventListener('click', function() { abrirModal(parseInt(this.dataset.id)); });
+            });
+        
+            document.querySelectorAll('.btn-toggle').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = parseInt(this.dataset.id);
+                    toggleBanner(id);
+                });
+            });
+        
+            document.querySelectorAll('.btn-delete').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = parseInt(this.dataset.id);
+                    if (confirm('¿Seguro que quieres eliminar este banner?')) {
+                        eliminarBanner(id);
+                    }
+                });
+            });
+        
+            setupDragDrop();
+        }
+
+        // ================================================================
+        // DRAG & DROP
+        // ================================================================
+        function setupDragDrop() {
+            const cards = document.querySelectorAll('.banner-card');
+            let dragSrcIndex = null;
+
+            cards.forEach(card => {
+                card.addEventListener('dragstart', function(e) {
+                    dragSrcIndex = parseInt(this.dataset.id);
+                    this.classList.add('dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                });
+
+                card.addEventListener('dragend', function() {
+                    this.classList.remove('dragging');
+                });
+
+                card.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                });
+
+                card.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    const destId = parseInt(this.dataset.id);
+                    if (dragSrcIndex !== destId) {
+                        reordenarBanners(dragSrcIndex, destId);
+                    }
+                });
+            });
+        }
+
+        // ================================================================
+        // REORDENAR - ✅ CON CSRF
+        // ================================================================
+        function reordenarBanners(srcId, destId) {
+            const srcIndex = banners.findIndex(b => b.id === srcId);
+            const destIndex = banners.findIndex(b => b.id === destId);
+            
+            if (srcIndex === -1 || destIndex === -1) return;
+
+            const [removed] = banners.splice(srcIndex, 1);
+            banners.splice(destIndex, 0, removed);
+
+            const ordenes = banners.map((b, i) => ({ id: b.id, orden: i }));
+            
+            fetch('/dashboard/api/banners/reordenar', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                },
+                body: JSON.stringify({ ordenes: ordenes })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('Orden actualizado', 'success');
+                    cargarBanners();
+                } else {
+                    showToast('Error: ' + data.message, 'error');
+                }
+            })
+            .catch(err => {
+                showToast('Error al reordenar', 'error');
+            });
+        }
+
+        // ================================================================
+        // TOGGLE BANNER - ✅ CON CSRF
+        // ================================================================
+        function toggleBanner(id) {
+            const banner = banners.find(b => b.id === id);
+            if (!banner) return;
+
+            fetch(`/dashboard/api/banners/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                },
+                body: JSON.stringify({ activo: !banner.activo })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(`Banner ${!banner.activo ? 'activado' : 'desactivado'}`, 'success');
+                    cargarBanners();
+                } else {
+                    showToast('Error: ' + data.message, 'error');
+                }
+            })
+            .catch(err => {
+                showToast('Error al cambiar estado', 'error');
+            });
+        }
+
+        // ================================================================
+        // ELIMINAR BANNER - ✅ CON CSRF
+        // ================================================================
+        function eliminarBanner(id) {
+            fetch(`/dashboard/api/banners/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRFToken': getCsrfToken()
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('Banner eliminado', 'success');
+                    cargarBanners();
+                } else {
+                    showToast('Error: ' + data.message, 'error');
+                }
+            })
+            .catch(err => {
+                showToast('Error al eliminar', 'error');
+            });
+        }
+
+        // ================================================================
+        // MODAL
+        // ================================================================
+        function abrirModal(id = null) {
+            const modal = document.getElementById('banner-modal');
+            const title = document.getElementById('modal-title');
+            const btnGuardar = document.getElementById('btn-guardar-banner');
+
+            modal.classList.remove('hidden');
+            editingId = id;
+
+            // Limpiar imagen seleccionada
+            selectedFile = null;
+            document.getElementById('image-preview-container').style.display = 'none';
+            document.getElementById('image-preview').src = '';
+            document.getElementById('file-input').value = '';
+            document.getElementById('drop-zone').style.borderColor = '#e2e8f0';
+
+            if (id) {
+                const banner = banners.find(b => b.id === id);
+                if (banner) {
+                    title.textContent = 'Editar Banner';
+                    document.getElementById('banner-id').value = banner.id;
+                    document.getElementById('banner-titulo').value = banner.titulo || '';
+                    document.getElementById('banner-subtitulo').value = banner.subtitulo || '';
+                    document.getElementById('banner-texto').value = banner.texto || '';
+                    document.getElementById('banner-boton-texto').value = banner.boton_texto || '';
+                    document.getElementById('banner-boton-enlace').value = banner.boton_enlace || '';
+                    document.getElementById('banner-imagen').value = banner.imagen || '';
+                    document.getElementById('banner-orden').value = banner.orden || 0;
+                    document.getElementById('banner-activo').checked = banner.activo;
+                    btnGuardar.textContent = 'Actualizar';
+                }
+            } else {
+                title.textContent = 'Nuevo Banner';
+                document.getElementById('banner-id').value = '';
+                document.getElementById('banner-titulo').value = '';
+                document.getElementById('banner-subtitulo').value = '';
+                document.getElementById('banner-texto').value = '';
+                document.getElementById('banner-boton-texto').value = '';
+                document.getElementById('banner-boton-enlace').value = '';
+                document.getElementById('banner-imagen').value = '';
+                document.getElementById('banner-orden').value = banners.length;
+                document.getElementById('banner-activo').checked = true;
+                btnGuardar.textContent = 'Guardar';
+            }
+        }
+
+        function cerrarModal() {
+            document.getElementById('banner-modal').classList.add('hidden');
+            editingId = null;
+            selectedFile = null;
+            document.getElementById('image-preview-container').style.display = 'none';
+            document.getElementById('image-preview').src = '';
+            document.getElementById('file-input').value = '';
+            document.getElementById('drop-zone').style.borderColor = '#e2e8f0';
+        }
+
+        // ================================================================
+        // GUARDAR BANNER - ✅ CON CSRF
+        // ================================================================
+        async function guardarBanner() {
+            const id = document.getElementById('banner-id').value;
+            
+            // Obtener datos del formulario
+            const titulo = document.getElementById('banner-titulo').value.trim();
+            const subtitulo = document.getElementById('banner-subtitulo').value.trim();
+            const texto = document.getElementById('banner-texto').value.trim();
+            const boton_texto = document.getElementById('banner-boton-texto').value.trim();
+            const boton_enlace = document.getElementById('banner-boton-enlace').value.trim();
+            const imagenUrl = document.getElementById('banner-imagen').value.trim();
+            const orden = parseInt(document.getElementById('banner-orden').value) || 0;
+            const activo = document.getElementById('banner-activo').checked;
+
+            // Validar título
+            if (!titulo) {
+                showToast('El título es obligatorio', 'error');
+                return;
+            }
+
+            // Construir datos a enviar
+            let data = {
+                titulo: titulo,
+                subtitulo: subtitulo || '',
+                texto: texto || '',
+                boton_texto: boton_texto || '',
+                boton_enlace: boton_enlace || '',
+                imagen: '',
+                orden: orden,
+                activo: activo
+            };
+
+            // Si hay un archivo seleccionado, subirlo primero
+            if (selectedFile) {
+                try {
+                    showToast('Subiendo imagen...', 'info');
+                    const imagenUrlSubida = await uploadImage(selectedFile);
+                    data.imagen = imagenUrlSubida;
+                    console.log('✅ Imagen subida:', imagenUrlSubida);
+                } catch (error) {
+                    showToast('Error al subir imagen: ' + error, 'error');
+                    return;
+                }
+            } else if (imagenUrl) {
+                data.imagen = imagenUrl;
+            } else {
+                data.imagen = '';
+            }
+
+            console.log('📤 Enviando datos:', data);
+
+            const url = id ? `/dashboard/api/banners/${id}` : '/dashboard/api/banners';
+            const method = id ? 'PUT' : 'POST';
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCsrfToken()
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                console.log('📥 Status:', response.status);
+                const result = await response.json();
+                console.log('📥 Respuesta:', result);
+
+                if (result.success) {
+                    showToast(id ? '✅ Banner actualizado' : '✅ Banner creado', 'success');
+                    cerrarModal();
+                    cargarBanners();
+                } else {
+                    showToast('❌ Error: ' + (result.message || 'Error desconocido'), 'error');
+                }
+            } catch (err) {
+                console.error('❌ Error en fetch:', err);
+                showToast('❌ Error al guardar: ' + err.message, 'error');
+            }
+        }
+
+        // ================================================================
+        // EVENTOS DEL MODAL
+        // ================================================================
+        document.getElementById('btn-nuevo-banner').addEventListener('click', function() {
+            abrirModal(null);
+        });
+
+        document.getElementById('modal-close').addEventListener('click', cerrarModal);
+        document.getElementById('btn-cancelar-modal').addEventListener('click', cerrarModal);
+
+        document.getElementById('btn-guardar-banner').addEventListener('click', guardarBanner);
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') cerrarModal();
+        });
+
+        document.getElementById('banner-modal').addEventListener('click', function(e) {
+            if (e.target === this) cerrarModal();
+        });
+
+        // ================================================================
+        // INICIALIZAR
+        // ================================================================
+        cargarBanners();
+    });
+</script>
+{% endblock %}

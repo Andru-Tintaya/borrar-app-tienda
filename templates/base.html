@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- ✅ CSRF TOKEN PARA PETICIONES AJAX - ESTO ES LO QUE FALTA -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    
+    <meta name="google-site-verification" content="wceYN5bm5mdjrwdYNsoCCRT27GkbbLXvN7FtnLRRte4" />
+
+    <!-- Título y Descripción para Google -->
+    <title>{% block title %}NAHARA | Importadora & Distribuidora{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}Catálogo mayorista oficial de Importadora NAHARA. Distribución nacional de calzado y moda al por mayor.{% endblock %}">
+    <meta name="keywords" content="NAHARA, Importadora Nahara, Distribuidora Nahara, calzado al por mayor, proveedores Bolivia, moda mayorista">
+    <meta name="robots" content="index, follow">
+
+    <!-- Etiquetas Open Graph para WhatsApp, Facebook y Redes Sociales -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://tiendanahara.com/">
+    <meta property="og:title" content="{% block og_title %}NAHARA - Importadora & Distribuidora Mayorista{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Accede a nuestro catálogo mayorista exclusivo. Calzado y moda con envíos a todo el país.{% endblock %}">
+    <!-- Imagen promocional que aparece en la tarjeta de WhatsApp -->
+    <meta property="og:image" content="{{ url_for('static', filename='img/logo_meta.jpg', _external=True) }}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+
+    <!-- Favicon (Icono de la pestaña del navegador) -->
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+    
+    
+    <!-- Bootstrap alojado localmente -->
+    <link href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+    <!-- CSS Personalizado del Proyecto -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --nahara-rosado: #f2cad3;
+            --nahara-plomo-claro: #e2e6ea;
+            --nahara-negro: #111111;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #ffffff;
+        }
+
+        .navbar-nahara {
+            background-color: var(--nahara-rosado);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+        }
+
+        .navbar-nahara .navbar-brand {
+            color: var(--nahara-negro);
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .navbar-nahara .nav-link {
+            color: var(--nahara-negro);
+        }
+
+        .navbar-nahara .nav-link:hover {
+            color: #ffffff;
+        }
+
+        .btn-nahara {
+            background-color: var(--nahara-negro);
+            color: #fff;
+            border: none;
+            font-weight: 600;
+        }
+
+        .btn-nahara:hover {
+            background-color: #333333;
+            color: #fff;
+        }
+
+        .icono-cuenta {
+            color: var(--nahara-negro);
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 8px;
+        }
+
+        .icono-cuenta:hover {
+            color: #ffffff;
+        }
+
+        .footer-nahara {
+            background-color: var(--nahara-plomo-claro);
+            color: var(--nahara-negro);
+        }
+
+        .footer-titulo {
+            color: var(--nahara-negro);
+            letter-spacing: 2px;
+        }
+
+        .social-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 18px 24px;
+            border-radius: 14px;
+            background-color: #d1d5db;
+            color: var(--nahara-negro);
+            text-decoration: none;
+            border: 1px solid #bc1c8;
+            transition: background 0.35s ease, transform 0.2s ease, color 0.35s ease;
+        }
+
+        .social-card .social-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: #444444;
+        }
+
+        .social-card .social-nombre {
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: var(--nahara-negro);
+        }
+
+        .social-card .social-flecha {
+            font-size: 1.2rem;
+            color: var(--nahara-negro);
+        }
+
+        .social-card .social-icon {
+            display: flex;
+            color: var(--nahara-negro);
+        }
+
+        .social-card:hover {
+            transform: translateY(-2px);
+            color: #ffffff;
+        }
+
+        .social-card:hover .social-label,
+        .social-card:hover .social-nombre,
+        .social-card:hover .social-flecha,
+        .social-card:hover .social-icon {
+            color: #ffffff;
+        }
+
+        .social-tiktok:hover {
+            background: linear-gradient(90deg, #25F4EE 0%, #6f3ac0 55%, #FE2C55 100%);
+        }
+
+        .social-instagram:hover {
+            background: linear-gradient(90deg, #833AB4 0%, #FD1D1D 55%, #FCAF45 100%);
+        }
+
+        .social-facebook:hover {
+            background: linear-gradient(90deg, #1877F2 0%, #4E9BF5 100%);
+        }
+
+        .social-grupos:hover {
+            background: linear-gradient(90deg, #333333 0%, #555555 100%);
+            color: #ffffff;
+        }
+
+        .mega-nav {
+            background-color: var(--nahara-plomo-claro);
+        }
+
+        .mega-nav .mega-lista {
+            list-style: none;
+            display: flex;
+            margin: 0;
+            padding: 0;
+            flex-wrap: wrap;
+        }
+
+        .mega-item {
+            position: relative;
+        }
+
+        .mega-item>a,
+        .mega-item>span {
+            display: block;
+            padding: 10px 16px;
+            color: #111;
+            font-weight: 700;
+            text-decoration: none;
+            font-size: 0.85rem;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .mega-item>a:hover,
+        .mega-item:hover>span {
+            background-color: rgba(0, 0, 0, 0.08);
+        }
+
+        .mega-panel {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: #fff;
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+            min-width: 240px;
+            padding: 14px 0;
+            z-index: 1050;
+            border-radius: 0 0 10px 10px;
+        }
+
+        .mega-item:hover .mega-panel {
+            display: block;
+        }
+
+        .mega-panel a {
+            display: block;
+            padding: 8px 20px;
+            color: #111;
+            text-decoration: none;
+            font-size: 0.85rem;
+        }
+
+        .mega-panel a:hover {
+            background-color: #f8f8f8;
+            color: var(--nahara-rosado);
+            font-weight: 700;
+        }
+
+        .mega-panel .mega-panel-titulo {
+            padding: 4px 20px 8px;
+            font-size: 0.75rem;
+            color: #999;
+            text-transform: uppercase;
+        }
+
+        .footer-linea-final {
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            color: #555555;
+        }
+
+        .footer-link-legal {
+            color: #444444;
+            text-decoration: none;
+        }
+
+        .footer-link-legal:hover {
+            color: var(--nahara-rosado);
+        }
+
+        .btn-hamburguesa {
+            background: transparent;
+            border: none;
+            color: #111111;
+            padding: 4px 8px;
+        }
+
+        .btn-hamburguesa:hover {
+            color: var(--nahara-rosado);
+        }
+
+        .menu-lateral {
+            background-color: var(--nahara-rosado);
+            color: #fff;
+            width: 300px;
+        }
+
+        .menu-lateral-link {
+            display: block;
+            padding: 12px 4px;
+            color: #fff;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            font-weight: 500;
+        }
+
+        .menu-lateral-link:hover {
+            color: #ffffff;
+            text-decoration: underline;
+        }
+
+        .menu-lateral-sublink {
+            display: block;
+            padding: 8px 4px 8px 14px;
+            color: #f0f0f0;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .menu-lateral-sublink:hover {
+            color: #ffffff;
+            text-decoration: underline;
+        }
+
+        .menu-social-icono {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #222;
+            color: #fff;
+            transition: background 0.3s ease;
+        }
+
+        .menu-social-icono.mi-tiktok:hover {
+            background: linear-gradient(90deg, #25F4EE 0%, #6f3ac0 55%, #FE2C55 100%);
+        }
+
+        .menu-social-icono.mi-instagram:hover {
+            background: linear-gradient(90deg, #833AB4 0%, #FD1D1D 55%, #FCAF45 100%);
+        }
+
+        .menu-social-icono.mi-facebook:hover {
+            background-color: #1877F2;
+        }
+
+        .opciones-cuenta {
+            display: flex;
+            align-items: center;
+        }
+
+        .opciones-cuenta>a,
+        .opciones-cuenta>span {
+            color: #111111;
+            padding: 0 12px;
+            text-decoration: none;
+            font-size: 0.85rem;
+            border-right: 1px solid rgba(0, 0, 0, 0.15);
+            white-space: nowrap;
+        }
+
+        .opciones-cuenta>a:last-child,
+        .opciones-cuenta>span:last-child {
+            border-right: none;
+            padding-right: 0;
+        }
+
+        .opciones-cuenta>a:hover {
+            color: #ffffff;
+        }
+
+        .buscador-navbar {
+            max-width: 480px;
+            width: 100%;
+        }
+
+        .buscador-navbar .input-wrap {
+            display: flex;
+            align-items: center;
+            background-color: #fff;
+            border-radius: 20px;
+            padding: 0 6px 0 16px;
+            width: 100%;
+            border: 1px solid #dcdcdc;
+        }
+
+        .buscador-navbar input {
+            border: none;
+            background: transparent;
+            padding: 9px 4px;
+            flex-grow: 1;
+            outline: none;
+            font-size: 0.9rem;
+        }
+
+        .buscador-navbar .btn-mic,
+        .buscador-navbar .btn-buscar {
+            background: transparent;
+            border: none;
+            color: #666;
+            padding: 6px 8px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .buscador-navbar .btn-mic:hover,
+        .buscador-navbar .btn-buscar:hover {
+            color: var(--nahara-rosado);
+        }
+
+        .buscador-navbar .btn-mic.escuchando {
+            color: #e63946;
+            animation: pulso-mic 1s infinite;
+        }
+
+        @keyframes pulso-mic {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        #admin-sidebar {
+            background-color: var(--nahara-negro) !important;
+            border-right: 1px solid rgba(0, 0, 0, 0.15);
+        }
+
+        #admin-sidebar .nav-link {
+            transition: all 0.25s ease;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        #admin-sidebar .nav-link:hover {
+            background-color: var(--nahara-rosado) !important;
+            color: var(--nahara-negro) !important;
+            opacity: 1 !important;
+        }
+
+        #admin-sidebar .nav-link.bg-primary {
+            background-color: var(--nahara-rosado) !important;
+            color: var(--nahara-negro) !important;
+            opacity: 1 !important;
+        }
+
+        .letter-spacing-1 {
+            letter-spacing: 1px;
+        }
+
+        @media (min-width: 768px) {
+            .admin-layout-wrapper {
+                display: flex;
+                flex-wrap: nowrap;
+                min-height: calc(100vh - 58px);
+            }
+            #admin-sidebar {
+                flex: 0 0 240px;
+                width: 240px;
+                position: sticky;
+                top: 58px;
+                height: calc(100vh - 58px);
+                z-index: 100;
+                overflow-x: hidden;
+                overflow-y: auto;
+            }
+            .admin-main {
+                flex-grow: 1;
+                padding: 24px;
+                background-color: #f8f9fa;
+                min-width: 0;
+            }
+        }
+
+        @media (max-width: 767.98px) {
+            .admin-layout-wrapper {
+                display: block;
+            }
+            .admin-main {
+                padding: 16px;
+            }
+            #admin-sidebar {
+                width: 100%;
+                min-height: auto;
+            }
+        }
+    </style>
+    {% block head_extra %}{% endblock %}
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-nahara">
+        <div class="container">
+            {% set in_admin = in_admin or (current_user.is_authenticated and current_user.rol.es_personal_interno and request.blueprint in ['dashboard', 'productos', 'categorias', 'pedidos', 'reportes', 'usuarios'] and request.endpoint != 'pedidos.mis_pedidos') or (request.endpoint in ['tienda.configurar_pago_qr', 'tienda.metodos_envio']) %}
+            {% if in_admin %}
+            <button class="btn-hamburguesa d-md-none me-2" type="button" data-bs-toggle="collapse"
+                data-bs-target="#admin-sidebar" aria-controls="admin-sidebar" aria-expanded="false"
+                aria-label="Toggle admin sidebar">
+                <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor">
+                    <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" />
+                </svg>
+            </button>
+            {% else %}
+            <button class="btn-hamburguesa d-lg-none" type="button" data-bs-toggle="offcanvas"
+                data-bs-target="#menuLateral" aria-label="Menú">
+                <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor" aria-hidden="true">
+                    <path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z" />
+                </svg>
+            </button>
+            {% endif %}
+            <a class="navbar-brand me-3" href="{{ url_for('tienda.catalogo') }}">NAHARA</a>
+
+            <form method="GET" action="{{ url_for('tienda.catalogo') }}"
+                class="buscador-navbar d-none d-md-flex mx-auto">
+                <div class="input-wrap">
+                    <input type="text" name="q" class="buscador-input" placeholder="Buscar productos, marcas..."
+                        value="{{ request.args.get('q', '') }}">
+                    <button type="button" class="btn-mic" title="Buscar por voz">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                            <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                            <line x1="12" y1="19" x2="12" y2="23" />
+                        </svg>
+                    </button>
+                    <button type="submit" class="btn-buscar">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="11" cy="11" r="7" />
+                            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                        </svg>
+                    </button>
+                </div>
+            </form>
+
+            <div class="d-flex ms-auto align-items-center">
+                <button class="btn btn-outline-dark btn-sm me-3 d-flex align-items-center gap-1" type="button"
+                    data-bs-toggle="offcanvas" data-bs-target="#miniCarrito">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="9" cy="21" r="1" />
+                        <circle cx="20" cy="21" r="1" />
+                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+                    </svg>
+                    Carrito ({{ cantidad_carrito() }})
+                </button>
+                {% if current_user.is_authenticated %}
+                <div class="opciones-cuenta">
+                    {% if current_user.rol.es_personal_interno %}
+                    <a href="{{ url_for('dashboard.index') }}">Panel</a>
+                    <a href="{{ url_for('pedidos.listar') }}">Pedidos</a>
+                    {% else %}
+                    <a href="{{ url_for('pedidos.mis_pedidos') }}">Mis pedidos</a>
+                    {% endif %}
+                    <span>{{ current_user.nombre }} ({{ current_user.rol.nombre }})</span>
+                    <a href="{{ url_for('auth.logout') }}">Cerrar sesión</a>
+                </div>
+                {% else %}
+                <a class="icono-cuenta" href="{{ url_for('auth.portal') }}" title="Iniciar sesión">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true">
+                        <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2c-4.4 0-8 2.2-8 5v3h16v-3c0-2.8-3.6-5-8-5z" />
+                    </svg>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        <form method="GET" action="{{ url_for('tienda.catalogo') }}"
+            class="buscador-navbar d-flex d-md-none mx-auto mt-2 mb-1 px-3">
+            <div class="input-wrap">
+                <input type="text" name="q" class="buscador-input" placeholder="Buscar productos, marcas..."
+                    value="{{ request.args.get('q', '') }}">
+                <button type="button" class="btn-mic" title="Buscar por voz">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                        <line x1="12" y1="19" x2="12" y2="23" />
+                    </svg>
+                </button>
+                <button type="submit" class="btn-buscar">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="7" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg>
+                </button>
+            </div>
+        </form>
+    </nav>
+
+    <nav class="mega-nav d-none d-lg-block">
+        <div class="container">
+            <ul class="mega-lista">
+                <li class="mega-item"><a href="{{ url_for('tienda.catalogo') }}">HOME</a></li>
+                <li class="mega-item"><a href="{{ url_for('tienda.catalogo', mas_vendido=1) }}">MÁS VENDIDOS</a></li>
+                <li class="mega-item"><a href="{{ url_for('tienda.catalogo', nuevo=1) }}">NOVEDADES</a></li>
+                <li class="mega-item"><a href="{{ url_for('tienda.catalogo', destacado=1) }}">DESTACADOS</a></li>
+                {% for categoria in categorias_menu %}
+                {% set subcats_activas = categoria.subcategorias|selectattr("activo")|list %}
+                <li class="mega-item">
+                    {% if subcats_activas %}
+                    <span>{{ categoria.nombre|upper }}</span>
+                    <div class="mega-panel">
+                        <div class="mega-panel-titulo">{{ categoria.nombre }}</div>
+                        <a href="{{ url_for('tienda.catalogo', categoria_id=categoria.id) }}">Ver todo</a>
+                        {% for sub in subcats_activas %}
+                        <a href="{{ url_for('tienda.catalogo', subcategoria_id=sub.id) }}">{{ sub.nombre }}</a>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <a href="{{ url_for('tienda.catalogo', categoria_id=categoria.id) }}">{{ categoria.nombre|upper
+                        }}</a>
+                    {% endif %}
+                </li>
+                {% endfor %}
+                <li class="mega-item"><a href="{{ url_for('tienda.catalogo', oferta=1) }}">OFERTAS</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="offcanvas offcanvas-start menu-lateral" tabindex="-1" id="menuLateral">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" style="color: #ffffff;">Menú</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body d-flex flex-column">
+            <a href="{{ url_for('tienda.catalogo', destacado=1) }}" class="menu-lateral-link" style="color: #ffffff;">✦
+                Destacados</a>
+            <a href="{{ url_for('tienda.catalogo') }}" class="menu-lateral-link">Home</a>
+            <a href="{{ url_for('tienda.catalogo', mas_vendido=1) }}" class="menu-lateral-link">Más Vendidos</a>
+            <a href="{{ url_for('tienda.catalogo', nuevo=1) }}" class="menu-lateral-link">Novedades</a>
+
+            {% for categoria in categorias_menu %}
+            {% set subcats_activas = categoria.subcategorias|selectattr("activo")|list %}
+            {% if subcats_activas %}
+            <a class="menu-lateral-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse"
+                href="#menu-cat-{{ categoria.id }}" role="button">
+                {{ categoria.nombre }} <span>+</span>
+            </a>
+            <div class="collapse" id="menu-cat-{{ categoria.id }}">
+                <a href="{{ url_for('tienda.catalogo', categoria_id=categoria.id) }}" class="menu-lateral-sublink">Ver
+                    todo</a>
+                {% for sub in subcats_activas %}
+                <a href="{{ url_for('tienda.catalogo', subcategoria_id=sub.id) }}" class="menu-lateral-sublink">{{
+                    sub.nombre }}</a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <a href="{{ url_for('tienda.catalogo', categoria_id=categoria.id) }}" class="menu-lateral-link">{{
+                categoria.nombre }}</a>
+            {% endif %}
+            {% endfor %}
+
+            <a href="#" class="menu-lateral-link">Gift Cards</a>
+            <a href="{{ url_for('tienda.catalogo', oferta=1) }}" class="menu-lateral-link">Ofertas</a>
+
+            <div class="mt-auto pt-4">
+                <a href="{{ url_for('auth.portal') }}" class="btn btn-outline-light w-100 mb-4">Acceso</a>
+
+                <div class="d-flex gap-3 justify-content-center">
+                    <a href="#" target="_blank" rel="noopener" class="menu-social-icono mi-facebook" title="Facebook">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+                            <path
+                                d="M22 12a10 10 0 1 0-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.4v7A10 10 0 0 0 22 12z" />
+                        </svg>
+                    </a>
+                    <a href="#" target="_blank" rel="noopener" class="menu-social-icono mi-instagram" title="Instagram">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                            stroke-width="2" aria-hidden="true">
+                            <rect x="3" y="3" width="18" height="18" rx="5" />
+                            <circle cx="12" cy="12" r="4" />
+                            <circle cx="17.3" cy="6.7" r="1" />
+                        </svg>
+                    </a>
+                    <a href="https://www.tiktok.com/@nahara_shop_?_r=1&_t=ZS-98Z2aI4nFYa" target="_blank" rel="noopener"
+                        class="menu-social-icono mi-tiktok" title="TikTok">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+                            <path
+                                d="M16.6 3c.4 2 1.9 3.6 3.9 3.9v3a7 7 0 0 1-3.9-1.2v6.7a5.7 5.7 0 1 1-5.7-5.7c.3 0 .6 0 .9.1v3.1a2.6 2.6 0 1 0 1.8 2.5V3h3z" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="miniCarrito">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title">Tu carrito</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body d-flex flex-column">
+            {% set lineas_mini, total_mini = resumen_carrito() %}
+            {% if not lineas_mini %}
+            <p class="text-muted">Tu carrito está vacío.</p>
+            {% else %}
+            {% for l in lineas_mini %}
+            <div class="d-flex justify-content-between border-bottom py-2">
+                <div>
+                    <div class="small fw-bold">{{ l.producto.nombre }}</div>
+                    <div class="small text-muted">x{{ l.cantidad }} · {{ l.nivel_precio }}</div>
+                </div>
+                <div class="small">Bs. {{ "%.2f"|format(l.subtotal) }}</div>
+            </div>
+            {% endfor %}
+            <div class="mt-auto pt-3">
+                <div class="d-flex justify-content-between fw-bold mb-2">
+                    <span>Total</span>
+                    <span>Bs. {{ "%.2f"|format(total_mini) }}</span>
+                </div>
+                <a href="{{ url_for('tienda.ver_carrito') }}" class="btn btn-outline-dark w-100 mb-2">Ver carrito</a>
+                <a href="{{ url_for('tienda.checkout') }}" class="btn btn-nahara w-100">Ir a pagar</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% include 'componentes/messages.html' %}
+
+    <div class="{% if in_admin %}admin-layout-wrapper{% else %}container py-4{% endif %}">
+        {% if in_admin %}
+        <!-- Sidebar Fijo -->
+        <nav id="admin-sidebar"
+            class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse py-3 text-white border-end">
+            <div class="position-sticky">
+                <ul class="nav flex-column gap-1">
+                    <li class="nav-item">
+                        <a class="nav-link text-white d-flex align-items-center gap-2 py-2 px-3 rounded {% if request.endpoint == 'dashboard.index' %}bg-primary fw-bold{% else %}opacity-75{% endif %}"
+                            href="{{ url_for('dashboard.index') }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor"
+                                viewBox="0 0 16 16">
+                                <path
+                                    d="M8 4a.5.5 0 0 1 .5.5V6a.5.5 0 0 1-1 0V4.5A.5.5 0 0 1 8 4M3.732 5.732a.5.5 0 0 1 .707 0l.915.914a.5.5 0 1 1-.708.708l-.914-.915a.5.5 0 0 1 0-.707M2 10a.5.5 0 0 1 .5-.5h1.586a.5.5 0 0 1 0 1H2.5A.5.5 0 0 1 2 10m9.5 0a.5.5 0 0 1 .5-.5h1.586a.5.5 0 0 1 0 1H12.5a.5.5 0 0 1-.5-.5m-7-3a.5.5 0 0 1 .707 0l.914.914a.5.5 0 1 1-.707.708l-.914-.915a.5.5 0 0 1 0-.707M11.224 5.776a.5.5 0 0 1 0 .708l-.914.915a.5.5 0 1 1-.707-.708l.914-.914a.5.5 0 0 1 .707 0" />
+                                <path
+                                    d="M10.125 5.192 3 10.125A6.002 6.002 0 0 0 8.125 14h.75A6.002 6.002 0 0 0 14 8.875v-.75a6.002 6.002 0 0 0-3.875-5.933ZM10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0" />
+                            </svg>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white d-flex align-items-center gap-2 py-2 px-3 rounded {% if request.blueprint == 'productos' %}bg-primary fw-bold{% else %}opacity-75{% endif %}"
+                            href="{{ url_for('productos.listar') }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor"
+                                viewBox="0 0 16 16">
+                                <path
+                                    d="M8.186 1.113a.5.5 0 0 0-.372 0L1.846 3.5l2.404.961L10.404 2zm3.564 1.426L5.566 5.014 8 5.987l6.186-2.474zM15.825 5l-6.8 2.72v7.172l6.8-2.72zm-7.8 9.892V7.72L1.225 5v7.172z" />
+                            </svg>
+                            <span>Productos</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white d-flex align-items-center gap-2 py-2 px-3 rounded {% if request.blueprint == 'categorias' %}bg-primary fw-bold{% else %}opacity-75{% endif %}"
+                            href="{{ url_for('categorias.listar') }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor"
+                                viewBox="0 0 16 16">
+                                <path
+                                    d="M3 2v4.586l7 7L14.586 9l-7-7zM2 2a1 1 0 0 1 1-1h4.586a1 1 0 0 1 .707.293l7 7a1 1 0 0 1 0 1.414l-4.586 4.586a1 1 0 0 1-1.414 0l-7-7A1 1 0 0 1 2 7.586z" />
+                                <path d="M5.5 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2" />
+                            </svg>
+                            <span>Categorías</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white d-flex align-items-center gap-2 py-2 px-3 rounded {% if request.blueprint == 'pedidos' and request.endpoint != 'pedidos.mis_pedidos' %}bg-primary fw-bold{% else %}opacity-75{% endif %}"
+                            href="{{ url_for('pedidos.listar') }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor"
+                                viewBox="0 0 16 16">
+                                <path
+                                    d="M11.354 6.354a.5.5 0 0 0-.708-.708L8 8.293 6.854 7.146a.5.5 0 1 0-.708.708l1.5 1.5a.5.5 0 0 0 .708 0z" />
+                                <path
+                                    d="M.5 1a.5.5 0 0 0 0 1h1.11l.401 1.607 1.498 7.985A.5.5 0 0 0 4 12h1a2 2 0 1 0 0 4 2 2 0 0 0 0-4h7a2 2 0 1 0 0 4 2 2 0 0 0 0-4h1a.5.5 0 0 0 .491-.408l1.5-8A.5.5 0 0 0 14.5 3H2.89l-.405-1.621A.5.5 0 0 0 2 1zm3.915 10L3.102 4h10.796l-1.313 7zM6 14a1 1 0 1 1-2 0 1 1 0 0 1 2 0m7 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0" />
+                            </svg>
+                            <span>Pedidos</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white d-flex align-items-center gap-2 py-2 px-3 rounded {% if request.blueprint == 'reportes' %}bg-primary fw-bold{% else %}opacity-75{% endif %}"
+                            href="{{ url_for('reportes.index') }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor"
+                                viewBox="0 0 16 16">
+                                <path fill-rule="evenodd"
+                                    d="M0 0h1v15h15v1H0zm10 3.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V4.9l-3.613 4.417a.5.5 0 0 1-.74.037L7.06 6.767l-3.656 5.027a.5.5 0 0 1-.808-.588l4-5.5a.5.5 0 0 1 .758-.06l2.609 2.61L13.445 4H10.5a.5.5 0 0 1-.5-.5" />
+                            </svg>
+                            <span>Reportes Ventas</span>
+                        </a>
+                    </li>
+
+                    {% if current_user.tiene_rol("Gerente", "Administrador") %}
+                    <li class="nav-item">
+                        <a class="nav-link text-white d-flex align-items-center gap-2 py-2 px-3 rounded {% if request.endpoint == 'usuarios.listar_personal' %}bg-primary fw-bold{% else %}opacity-75{% endif %}"
+                            href="{{ url_for('usuarios.listar_personal') }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor"
+                                viewBox="0 0 16 16">
+                                <path
+                                    d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1zm-7.978-1L7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002-.014.002zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4m3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0M6.936 9.28a6 6 0 0 0-1.23-.247A7 7 0 0 0 5 9c-4 0-5 3-5 4q0 1 1 1h4.216A2.24 2.24 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816M4.92 10A5.5 5.5 0 0 0 4 13H1c0-.26.164-1.03.76-1.724C2.3 10.634 3.268 10 5 10zM6 8a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3M0 8a3 3 0 1 1 6 0 3 3 0 0 1-6 0" />
+                            </svg>
+                            <span>Personal Interno</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white d-flex align-items-center gap-2 py-2 px-3 rounded {% if request.endpoint == 'usuarios.aprobaciones_b2b' %}bg-primary fw-bold{% else %}opacity-75{% endif %}"
+                            href="{{ url_for('usuarios.aprobaciones_b2b') }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor"
+                                viewBox="0 0 16 16">
+                                <path
+                                    d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7m1.679-4.493-1.335 2.226a.75.75 0 0 1-1.157.073l-.832-.856a.5.5 0 0 1 .722-.692l.53.546 1.052-1.753a.5.5 0 0 1 .82.556M11 7.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V8.9l-3.6 3.6a.5.5 0 0 1-.7 0L7.5 9.3l-2.65 2.65a.5.5 0 0 1-.7-.7l3-3a.5.5 0 0 1 .7 0l3.15 3.15 3-3V7.5a.5.5 0 0 1-.5-.5" />
+                            </svg>
+                            <span>Aprobaciones B2B</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item mt-3 mb-1">
+                        <div class="text-white-50 px-3 small text-uppercase fw-bold letter-spacing-1">Configuración
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white d-flex align-items-center gap-2 py-2 px-3 rounded {% if request.endpoint == 'tienda.configurar_pago_qr' %}bg-primary fw-bold{% else %}opacity-75{% endif %}"
+                            href="{{ url_for('tienda.configurar_pago_qr') }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor"
+                                viewBox="0 0 16 16">
+                                <path
+                                    d="M0 .5A.5.5 0 0 1 .5 0h3a.5.5 0 0 1 0 1H1v2.5a.5.5 0 0 1-1 0zm12 0a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-1 0V1h-2.5a.5.5 0 0 1-.5-.5M.5 12a.5.5 0 0 1 .5.5V15h2.5a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5v-3a.5.5 0 0 1 .5-.5m15 0a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1 0-1H15v-2.5a.5.5 0 0 1 .5-.5M4 4h1v1H4z" />
+                                <path
+                                    d="M7 2H2v5h5zm-1 1v3H3V3zm5-1h-5v5h5zm-1 1v3h-3V3zM2 9h5v5H2zm1 1v3h3v-3zm5-5h2v2H8zm3 1v1h-1v-1zm-1-7h1v1h-1zm1 5h1.5a.5.5 0 0 1 .5.5v1.5a.5.5 0 0 1-.5.5H11a.5.5 0 0 1-.5-.5v-1.5a.5.5 0 0 1 .5-.5" />
+                            </svg>
+                            <span>Pago QR / T. Cambio</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white d-flex align-items-center gap-2 py-2 px-3 rounded {% if request.endpoint == 'tienda.metodos_envio' %}bg-primary fw-bold{% else %}opacity-75{% endif %}"
+                            href="{{ url_for('tienda.metodos_envio') }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor"
+                                viewBox="0 0 16 16">
+                                <path
+                                    d="M0 3.5A1.5 1.5 0 0 1 1.5 2h9A1.5 1.5 0 0 1 12 3.5V5h1.02a1.5 1.5 0 0 1 1.17.563l1.481 1.85a1.5 1.5 0 0 1 .329.938V10.5a1.5 1.5 0 0 1-1.5 1.5H14a2 2 0 1 1-4 0H5a2 2 0 1 1-3.998-.085A1.5 1.5 0 0 1 0 10.5zm1.294 7.456A2 2 0 0 1 4.7 11H11a2 2 0 0 1 2.91 1.151l.09-.046a.5.5 0 0 0 .22-.441V8.35a.5.5 0 0 0-.11-.312l-1.48-1.85A.5.5 0 0 0 12.23 6H12v4.5a.5.5 0 0 1-1 0V3.5a.5.5 0 0 0-.5-.5h-9a.5.5 0 0 0-.5.5v7a.5.5 0 0 0 .12.312" />
+                            </svg>
+                            <span>Métodos Envío</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white d-flex align-items-center gap-2 py-2 px-3 rounded {% if request.endpoint == 'dashboard.listar_banners' %}bg-primary fw-bold{% else %}opacity-75{% endif %}"
+                            href="{{ url_for('dashboard.listar_banners') }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M4.502 9a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/>
+                                <path d="M14.002 13a2 2 0 0 1-2 2h-10a2 2 0 0 1-2-2V5A2 2 0 0 1 2 3a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2zm-12-8h10a2 2 0 0 1 0 4h-10a2 2 0 0 1 0-4zm0 1v2h10V6h-10z"/>
+                            </svg>
+                            <span>Banners / Carrusel</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </nav>
+        {% endif %}
+
+        <div id="admin-main-content" class="{% if in_admin %}admin-main{% endif %}">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    {% include 'componentes/footer.html' %}
+
+    <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+
+    <script>
+        (function () {
+            const ReconocimientoVoz = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!ReconocimientoVoz) return;
+
+            document.querySelectorAll('.buscador-navbar').forEach(function (form) {
+                const botonMic = form.querySelector('.btn-mic');
+                const campoTexto = form.querySelector('input[name="q"]');
+                if (!botonMic || !campoTexto) return;
+
+                const reconocimiento = new ReconocimientoVoz();
+                reconocimiento.lang = 'es-BO';
+                reconocimiento.interimResults = false;
+                reconocimiento.maxAlternatives = 1;
+
+                botonMic.addEventListener('click', function () {
+                    botonMic.classList.add('escuchando');
+                    reconocimiento.start();
+                });
+
+                reconocimiento.addEventListener('result', function (evento) {
+                    campoTexto.value = evento.results[0][0].transcript;
+                    form.submit();
+                });
+
+                reconocimiento.addEventListener('end', function () {
+                    botonMic.classList.remove('escuchando');
+                });
+
+                reconocimiento.addEventListener('error', function () {
+                    botonMic.classList.remove('escuchando');
+                });
+            });
+        })();
+    </script>
+
+    {% block scripts_extra %}{% endblock %}
+</body>
+
+</html>

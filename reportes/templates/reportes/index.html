@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}Reportes de Ventas - NAHARA{% endblock %}
+{% block content %}
+<h2 class="mb-4">Reportes de ventas e ingresos</h2>
+
+<form method="GET" class="card mb-4">
+    <div class="card-body row g-3">
+        <div class="col-md-2">
+            <label class="form-label small">Desde</label>
+            <input type="date" name="fecha_desde" class="form-control form-control-sm" value="{{ filtros.fecha_desde_str }}">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small">Hasta</label>
+            <input type="date" name="fecha_hasta" class="form-control form-control-sm" value="{{ filtros.fecha_hasta_str }}">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small">Producto</label>
+            <select name="producto_id" class="form-select form-select-sm">
+                <option value="">Todos</option>
+                {% for p in productos %}
+                <option value="{{ p.id }}" {% if filtros.producto_id == p.id %}selected{% endif %}>{{ p.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small">Categoría</label>
+            <select name="categoria_id" class="form-select form-select-sm">
+                <option value="">Todas</option>
+                {% for c in categorias %}
+                <option value="{{ c.id }}" {% if filtros.categoria_id == c.id %}selected{% endif %}>{{ c.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small">Canal</label>
+            <select name="canal" class="form-select form-select-sm">
+                <option value="">Todos</option>
+                {% for c in canales %}
+                <option value="{{ c }}" {% if filtros.canal == c %}selected{% endif %}>{{ c }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-1 d-flex align-items-end">
+            <button type="submit" class="btn btn-nahara btn-sm w-100">Filtrar</button>
+        </div>
+    </div>
+</form>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm">
+            <div class="card-body">
+                <p class="text-muted small mb-1">Total ingresos</p>
+                <h4 class="mb-0">Bs. {{ "%.2f"|format(resumen.total_ingresos) }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm">
+            <div class="card-body">
+                <p class="text-muted small mb-1">Unidades vendidas</p>
+                <h4 class="mb-0">{{ resumen.total_unidades }}</h4>
+            </div>
+        </div>
+    </div>
+    {% for canal, datos in resumen.por_canal.items() %}
+    <div class="col-md-2">
+        <div class="card text-center shadow-sm">
+            <div class="card-body">
+                <p class="text-muted small mb-1">{{ canal }}</p>
+                <h6 class="mb-0">{{ datos.unidades }} u.</h6>
+                <p class="small mb-0">Bs. {{ "%.2f"|format(datos.ingresos) }}</p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="mb-3">
+    <a href="{{ url_for('reportes.exportar_pdf', **request.args) }}" class="btn btn-outline-dark btn-sm" target="_blank">Exportar PDF</a>
+    <a href="{{ url_for('reportes.exportar_excel', **request.args) }}" class="btn btn-outline-dark btn-sm">Exportar Excel</a>
+</div>
+
+<table class="table table-bordered bg-white align-middle table-sm">
+    <thead class="table-dark">
+        <tr><th>Fecha</th><th>Pedido</th><th>Producto</th><th>Categoría</th><th>Canal</th><th>Cant.</th><th>P. Unit.</th><th>Subtotal</th></tr>
+    </thead>
+    <tbody>
+        {% for f in filas %}
+        <tr>
+            <td>{{ f.fecha.strftime("%Y-%m-%d") }}</td>
+            <td>#{{ f.pedido_id }}</td>
+            <td>{{ f.producto }}</td>
+            <td>{{ f.categoria }}</td>
+            <td>{{ f.canal }}</td>
+            <td>{{ f.cantidad }}</td>
+            <td>{{ "%.2f"|format(f.precio_unitario) }}</td>
+            <td>{{ "%.2f"|format(f.subtotal) }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="text-center text-muted">No hay ventas verificadas con esos filtros.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+<a href="{{ url_for('dashboard.index') }}" class="d-block mt-3">Volver al dashboard</a>
+{% endblock %}

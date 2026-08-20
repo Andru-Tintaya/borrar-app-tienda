@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Registro de Cliente - NAHARA{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h2 class="mb-4">Crear cuenta de cliente</h2>
+        <form method="POST" novalidate>
+            {{ formulario.hidden_tag() }}
+            <div class="mb-3">
+                {{ formulario.nombre.label(class="form-label") }}
+                {{ formulario.nombre(class="form-control") }}
+                {% for error in formulario.nombre.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+            </div>
+            <div class="mb-3">
+                {{ formulario.correo.label(class="form-label") }}
+                {{ formulario.correo(class="form-control") }}
+                {% for error in formulario.correo.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+            </div>
+            <div class="mb-3">
+                {{ formulario.telefono.label(class="form-label") }}
+                {{ formulario.telefono(class="form-control") }}
+                {% for error in formulario.telefono.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+            </div>
+            <div class="mb-3">
+                {{ formulario.ciudad.label(class="form-label") }}
+                {{ formulario.ciudad(class="form-control") }}
+            </div>
+            <div class="mb-3">
+                {{ formulario.tipo_cliente.label(class="form-label") }}
+                {{ formulario.tipo_cliente(class="form-select", id="tipo_cliente") }}
+            </div>
+            <div id="campos_b2b" class="border rounded p-3 mb-3 bg-light" style="display:none;">
+                <p class="small text-muted mb-2">Requerido para cuentas Minorista/Mayorista. Tu cuenta quedará pendiente de aprobación por Gerencia.</p>
+                <div class="mb-3">
+                    {{ formulario.nit_ci.label(class="form-label") }}
+                    {{ formulario.nit_ci(class="form-control") }}
+                    {% for error in formulario.nit_ci.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="mb-0">
+                    {{ formulario.razon_social.label(class="form-label") }}
+                    {{ formulario.razon_social(class="form-control") }}
+                    {% for error in formulario.razon_social.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                </div>
+            </div>
+            {{ formulario.submit(class="btn btn-nahara w-100") }}
+        </form>
+        <a href="{{ url_for('auth.portal') }}" class="d-block text-center mt-3">Volver</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+    const selectTipo = document.getElementById('tipo_cliente');
+    const camposB2B = document.getElementById('campos_b2b');
+
+    function actualizarCamposB2B() {
+        camposB2B.style.display = (selectTipo.value === 'Minorista' || selectTipo.value === 'Mayorista') ? 'block' : 'none';
+    }
+
+    selectTipo.addEventListener('change', actualizarCamposB2B);
+    actualizarCamposB2B();
+</script>
+{% endblock %}

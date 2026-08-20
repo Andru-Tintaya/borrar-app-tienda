@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block title %}Pedido #{{ pedido.id }} - NAHARA{% endblock %}
+{% block content %}
+<h2 class="mb-1">Pedido #{{ pedido.id }}</h2>
+<p class="text-muted">{{ pedido.fecha_creacion.strftime("%Y-%m-%d %H:%M") }} · Tarifa {{ pedido.nivel_precio }} · {{ pedido.tipo_entrega }}</p>
+
+<div class="row">
+    <div class="col-md-7">
+        <div class="card mb-3">
+            <div class="card-header">Cliente</div>
+            <div class="card-body">
+                <p class="mb-1"><strong>{{ pedido.usuario.nombre }}</strong> ({{ pedido.usuario.rol.nombre }})</p>
+                <p class="mb-1 small text-muted">{{ pedido.usuario.correo }} · {{ pedido.usuario.telefono }}</p>
+                {% if pedido.usuario.razon_social %}<p class="mb-1 small text-muted">{{ pedido.usuario.razon_social }} · NIT/CI: {{ pedido.usuario.nit_ci }}</p>{% endif %}
+                {% if pedido.direccion_envio %}<p class="mb-0 small">Envío a: {{ pedido.direccion_envio }}</p>{% endif %}
+                {% if pedido.metodo_envio_nombre %}<p class="mb-0 small">Método: {{ pedido.metodo_envio_nombre }} (Bs. {{ "%.2f"|format(pedido.costo_envio) }})</p>{% endif %}
+                {% if pedido.nota %}<p class="mb-0 small fst-italic">Nota del cliente: "{{ pedido.nota }}"</p>{% endif %}
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header">Artículos</div>
+            <ul class="list-group list-group-flush">
+                {% for item in pedido.items %}
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>{{ item.nombre_producto }} x{{ item.cantidad }}</span>
+                    <span>Bs. {{ "%.2f"|format(item.subtotal) }}</span>
+                </li>
+                {% endfor %}
+                {% if pedido.costo_envio and pedido.costo_envio > 0 %}
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>Envío ({{ pedido.metodo_envio_nombre }})</span><span>Bs. {{ "%.2f"|format(pedido.costo_envio) }}</span>
+                </li>
+                {% endif %}
+                <li class="list-group-item d-flex justify-content-between fw-bold">
+                    <span>Total</span><span>Bs. {{ "%.2f"|format(pedido.total) }}</span>
+                </li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Comprobante de pago</div>
+            <div class="card-body">
+                {% if pedido.comprobante_pago %}
+                    <img src="{{ url_for('static', filename=pedido.comprobante_pago) }}" style="max-width:100%;max-height:400px;">
+                {% else %}
+                    <p class="text-muted mb-0">El cliente no adjuntó comprobante.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header">Estado del pedido</div>
+            <div class="card-body">
+                <p>Estado actual: <strong>{{ pedido.estado }}</strong></p>
+
+                {% if pedido.estado == "Pendiente" %}
+                <form method="POST" action="{{ url_for('pedidos.verificar_pago', pedido_id=pedido.id) }}" class="mb-2">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-nahara w-100">Verificar pago y generar Nota de Venta</button>
+                </form>
+                <form method="POST" action="{{ url_for('pedidos.rechazar', pedido_id=pedido.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-outline-danger w-100">Rechazar pedido</button>
+                </form>
+                {% elif pedido.estado == "Pagado" %}
+                <a href="{{ url_for('notas_venta.descargar', pedido_id=pedido.id) }}" target="_blank" class="btn btn-nahara w-100 mb-3">Ver / descargar Nota de Venta N° {{ pedido.numero_nota }}</a>
+                
+                <h5 class="mt-3">Registrar Despacho de Envío</h5>
+                <form method="POST" action="{{ url_for('pedidos.despachar', pedido_id=pedido.id) }}" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3">
+                        <label for="empresa_transporte" class="form-label small fw-bold">Empresa de Transporte</label>
+                        <input type="text" class="form-control" id="empresa_transporte" name="empresa_transporte" required placeholder="Ej: Trans Copacabana, Starken, etc.">
+                    </div>
+                    <div class="mb-3">
+                        <label for="numero_guia" class="form-label small fw-bold">Número de Guía / Factura</label>
+                        <input type="text" class="form-control" id="numero_guia" name="numero_guia" required placeholder="Ej: GUIA-987123">
+                    </div>
+                    <div class="mb-3">
+                        <label for="numero_guia_foto" class="form-label small fw-bold">Foto de la Guía (Opcional)</label>
+                        <input type="file" class="form-control" id="numero_guia_foto" name="numero_guia_foto" accept="image/*">
+                    </div>
+                    <button type="submit" class="btn btn-dark w-100">Marcar como Despachado</button>
+                </form>
+                {% elif pedido.estado == "Despachado" %}
+                <a href="{{ url_for('notas_venta.descargar', pedido_id=pedido.id) }}" target="_blank" class="btn btn-outline-dark w-100 mb-3">Ver Nota de Venta N° {{ pedido.numero_nota }}</a>
+                
+                <div class="alert alert-info py-2 small">
+                    <h6 class="alert-heading mb-1 fw-bold">Información de Envío:</h6>
+                    <p class="mb-1"><strong>Transporte:</strong> {{ pedido.empresa_transporte }}</p>
+                    <p class="mb-1"><strong>Guía N°:</strong> {{ pedido.numero_guia }}</p>
+                    {% if pedido.numero_guia_foto_url %}
+                    <p class="mb-0"><a href="{{ url_for('static', filename=pedido.numero_guia_foto_url) }}" target="_blank" class="alert-link text-decoration-underline">Ver Foto de la Guía</a></p>
+                    {% endif %}
+                </div>
+
+                <form method="POST" action="{{ url_for('pedidos.en_transito', pedido_id=pedido.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-nahara w-100">Marcar En Tránsito (En Camino)</button>
+                </form>
+                {% elif pedido.estado == "En Tránsito" %}
+                <a href="{{ url_for('notas_venta.descargar', pedido_id=pedido.id) }}" target="_blank" class="btn btn-outline-dark w-100 mb-3">Ver Nota de Venta N° {{ pedido.numero_nota }}</a>
+                
+                <div class="alert alert-warning py-2 small text-dark">
+                    <h6 class="alert-heading mb-1 fw-bold">Información de Envío (En Camino):</h6>
+                    <p class="mb-1"><strong>Transporte:</strong> {{ pedido.empresa_transporte }}</p>
+                    <p class="mb-1"><strong>Guía N°:</strong> {{ pedido.numero_guia }}</p>
+                    {% if pedido.numero_guia_foto_url %}
+                    <p class="mb-0"><a href="{{ url_for('static', filename=pedido.numero_guia_foto_url) }}" target="_blank" class="alert-link text-decoration-underline">Ver Foto de la Guía</a></p>
+                    {% endif %}
+                </div>
+
+                <form method="POST" action="{{ url_for('pedidos.entregado', pedido_id=pedido.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-nahara w-100">Marcar como Entregado</button>
+                </form>
+                {% elif pedido.estado == "Entregado" %}
+                <a href="{{ url_for('notas_venta.descargar', pedido_id=pedido.id) }}" target="_blank" class="btn btn-outline-dark w-100 mb-3">Ver Nota de Venta N° {{ pedido.numero_nota }}</a>
+                
+                <div class="alert alert-success py-2 small text-dark">
+                    <h6 class="alert-heading mb-1 fw-bold">Entregado con éxito:</h6>
+                    <p class="mb-1"><strong>Transporte:</strong> {{ pedido.empresa_transporte }}</p>
+                    <p class="mb-1"><strong>Guía N°:</strong> {{ pedido.numero_guia }}</p>
+                    {% if pedido.numero_guia_foto_url %}
+                    <p class="mb-0"><a href="{{ url_for('static', filename=pedido.numero_guia_foto_url) }}" target="_blank" class="alert-link text-decoration-underline">Ver Foto de la Guía</a></p>
+                    {% endif %}
+                </div>
+                {% elif pedido.numero_nota %}
+                <a href="{{ url_for('notas_venta.descargar', pedido_id=pedido.id) }}" target="_blank" class="btn btn-outline-dark w-100">Ver Nota de Venta N° {{ pedido.numero_nota }}</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+<a href="{{ url_for('pedidos.listar') }}" class="d-block mt-3">Volver al listado</a>
+{% endblock %}

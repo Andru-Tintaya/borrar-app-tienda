@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Mis Pedidos - NAHARA{% endblock %}
+{% block content %}
+<h2 class="mb-4">Mis pedidos</h2>
+
+<table class="table bg-white align-middle shadow-sm rounded">
+    <thead class="table-dark">
+        <tr>
+            <th>#</th>
+            <th>Fecha</th>
+            <th>Total</th>
+            <th>Estado</th>
+            <th>Seguimiento de Envío</th>
+            <th class="text-end">Nota de Venta</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for p in pedidos %}
+        <tr>
+            <td>{{ p.id }}</td>
+            <td>{{ p.fecha_creacion.strftime("%Y-%m-%d") }}</td>
+            <td>Bs. {{ "%.2f"|format(p.total) }}</td>
+            <td>
+                {% if p.estado == "Pendiente" or p.estado == "Pendiente de verificación" %}
+                    <span class="badge bg-warning text-dark">Pendiente</span>
+                {% elif p.estado == "Pagado" %}
+                    <span class="badge bg-info text-dark">Pagado</span>
+                {% elif p.estado == "Despachado" %}
+                    <span class="badge bg-primary">Despachado</span>
+                {% elif p.estado == "En Tránsito" %}
+                    <span class="badge bg-warning text-dark">En Tránsito</span>
+                {% elif p.estado == "Entregado" %}
+                    <span class="badge bg-success">Entregado</span>
+                {% elif p.estado == "Rechazado" %}
+                    <span class="badge bg-danger">Rechazado</span>
+                {% else %}
+                    <span class="badge bg-secondary">{{ p.estado }}</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if p.empresa_transporte or p.numero_guia %}
+                    <div class="small">
+                        <strong>{{ p.empresa_transporte }}</strong><br>
+                        Guía: <span class="text-muted">{{ p.numero_guia }}</span>
+                        {% if p.numero_guia_foto_url %}
+                            <br><a href="{{ url_for('static', filename=p.numero_guia_foto_url) }}" target="_blank" class="text-decoration-underline small">Ver foto de la guía</a>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <span class="text-muted small">Pendiente de despacho</span>
+                {% endif %}
+            </td>
+            <td class="text-end">
+                <div class="d-flex justify-content-end align-items-center gap-2">
+                    <!-- Botón directo de WhatsApp -->
+                    <a href="https://wa.me/59170000000?text=Hola,%20tengo%20una%20consulta%20sobre%20mi%20pedido%20{{ p.id }}" 
+                       target="_blank" 
+                       class="btn btn-sm btn-success d-inline-flex align-items-center gap-1"
+                       title="Contactar al vendedor por WhatsApp">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-whatsapp" viewBox="0 0 16 16">
+                          <path d="M13.601 2.326A7.85 7.85 0 0 0 8 0a7.86 7.86 0 0 0-6.617 11.89L0 16l4.255-1.12a7.86 7.86 0 0 0 3.739.957h.004a7.86 7.86 0 0 0 7.85-7.85 7.83 7.83 0 0 0-2.247-5.558zM8 14.167a6.52 6.52 0 0 1-3.32-.907l-.238-.14-2.482.653.665-2.42-.154-.245A6.52 6.52 0 0 1 1.667 8C1.667 4.398 4.602 1.463 8 1.463s6.333 2.935 6.333 6.537-2.935 6.333-6.333 6.333M11.583 9.474c-.195-.096-1.15-.567-1.328-.631-.177-.065-.307-.096-.437.1-.13.195-.5.631-.612.76-.113.128-.226.144-.421.047-.195-.1-1.246-.46-1.564-.743-.248-.221-.416-.494-.465-.582-.048-.088-.005-.136.039-.18.04-.039.088-.1.13-.15.044-.05.058-.082.088-.137.03-.056.016-.105-.008-.152-.024-.047-.178-.437-.244-.596-.065-.16-.13-.138-.178-.14-.047-.002-.102-.002-.157-.002a.3.3 0 0 0-.217.1c-.074.08-.282.276-.282.672s.287.777.327.832c.04.055.565.863 1.368 1.21.19.082.34.13.456.168.193.061.368.052.507.032.155-.022.568-.232.648-.457.08-.226.08-.419.056-.459-.024-.04-.088-.065-.282-.162"/>
+                        </svg>
+                        WhatsApp
+                    </a>
+                    
+                    {% if p.numero_nota %}
+                        <a href="{{ url_for('notas_venta.descargar', pedido_id=p.id) }}" target="_blank" class="btn btn-sm btn-outline-dark">Descargar Nota</a>
+                    {% else %}
+                        <span class="text-muted small">Verificación pendiente</span>
+                    {% endif %}
+                </div>
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="text-center text-muted">Aún no tienes pedidos. <a href="{{ url_for('tienda.catalogo') }}">Ir al catálogo</a></td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

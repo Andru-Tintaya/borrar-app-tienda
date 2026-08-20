@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+{% block title %}{{ "Buscar: " + busqueda if busqueda else "Catálogo" }} - NAHARA{% endblock %}
+{% block content %}
+
+<!-- ============================================================
+     1. CARRUSEL HERO PRINCIPAL - DINÁMICO DESDE BANNERS
+     ============================================================ -->
+{% if not hay_filtros_activos and banners %}
+<div id="carruselHero" class="carousel slide mb-5 rounded-4 overflow-hidden shadow-sm" data-bs-ride="carousel"
+    data-bs-interval="5000">
+    <div class="carousel-indicators">
+        {% for banner in banners %}
+        <button type="button" data-bs-target="#carruselHero" data-bs-slide-to="{{ loop.index0 }}" 
+                class="{% if loop.first %}active{% endif %}" 
+                aria-current="{% if loop.first %}true{% endif %}"></button>
+        {% endfor %}
+    </div>
+    <div class="carousel-inner">
+        {% for banner in banners %}
+        <div class="carousel-item {% if loop.first %}active{% endif %}" 
+             style="height: 380px; background: 
+                {% if banner.imagen %}
+                    url('{{ banner.imagen }}') center/cover no-repeat
+                {% else %}
+                    linear-gradient(135deg, #111111 0%, #333333 100%)
+                {% endif %};">
+            <div class="d-flex h-100 align-items-center justify-content-center px-4 text-white" 
+                 style="background: rgba(0,0,0,0.35);">
+                <div class="text-center">
+                    {% if banner.titulo %}
+                    <h1 class="display-4 fw-bold">{{ banner.titulo }}</h1>
+                    {% endif %}
+                    {% if banner.subtitulo %}
+                    <p class="lead">{{ banner.subtitulo }}</p>
+                    {% endif %}
+                    {% if banner.texto %}
+                    <p class="mb-3">{{ banner.texto }}</p>
+                    {% endif %}
+                    {% if banner.boton_texto and banner.boton_enlace %}
+                    <a href="{{ banner.boton_enlace }}" class="btn btn-light btn-lg px-4">
+                        {{ banner.boton_texto }}
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% if banners|length > 1 %}
+    <button class="carousel-control-prev" type="button" data-bs-target="#carruselHero" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon"></span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#carruselHero" data-bs-slide="next">
+        <span class="carousel-control-next-icon"></span>
+    </button>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- ============================================================
+     2. CATEGORÍAS (TARJETAS RECTANGULARES VERTICALES CENTRADAS)
+     ============================================================ -->
+{% if categorias_home %}
+<div class="row row-cols-2 row-cols-md-4 g-4 mb-5 justify-content-center">
+    {% for c in categorias_home %}
+    <div class="col">
+        <a href="{{ url_for('tienda.catalogo', categoria_id=c.id) }}" class="text-decoration-none">
+            <div class="categoria-tile">
+                {% if c.imagen %}
+                <img src="{{ url_for('static', filename=c.imagen) }}" alt="{{ c.nombre }}">
+                {% else %}
+                <div class="categoria-tile-sinfoto">{{ c.nombre }}</div>
+                {% endif %}
+                <div class="categoria-tile-overlay">
+                    <div class="categoria-tile-nombre">{{ c.nombre }}</div>
+                    <div class="categoria-tile-explorar">Explorar &rarr;</div>
+                </div>
+            </div>
+        </a>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- ============================================================
+     3. FILTROS Y CATÁLOGO DE PRODUCTOS
+     ============================================================ -->
+<div class="row">
+    <div class="col-md-3">
+        <div class="card mb-3">
+            <div class="card-header">Filtros</div>
+            <div class="card-body">
+                <form method="GET">
+                    <input type="hidden" name="q" value="{{ busqueda }}">
+                    
+                    <div class="mb-3">
+                        <label class="form-label small">Categoría</label>
+                        <select name="categoria_id" class="form-select form-select-sm" onchange="this.form.submit()">
+                            <option value="">Todas</option>
+                            {% for c in categorias %}
+                            <option value="{{ c.id }}" {% if categoria_id_actual==c.id %}selected{% endif %}>{{ c.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small">Disponibilidad</label>
+                        <select name="disponibilidad" class="form-select form-select-sm" onchange="this.form.submit()">
+                            <option value="">Todas</option>
+                            <option value="en_existencia" {% if request.args.get('disponibilidad')=='en_existencia' %}selected{% endif %}>En existencia</option>
+                            <option value="agotado" {% if request.args.get('disponibilidad')=='agotado' %}selected{% endif %}>Agotado</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small">Color</label>
+                        <select name="color_id" class="form-select form-select-sm" onchange="this.form.submit()">
+                            <option value="">Todos</option>
+                            {% for col in colores %}
+                            <option value="{{ col.id }}" {% if color_id_actual==col.id %}selected{% endif %}>{{ col.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label small d-block">Estado</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="nuevo" value="1" id="filtroNuevo" {% if request.args.get('nuevo') %}checked{% endif %} onchange="this.form.submit()">
+                            <label class="form-check-label small" for="filtroNuevo">Nuevo</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="destacado" value="1" id="filtroDestacado" {% if request.args.get('destacado') %}checked{% endif %} onchange="this.form.submit()">
+                            <label class="form-check-label small" for="filtroDestacado">Destacado</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="oferta" value="1" id="filtroOferta" {% if request.args.get('oferta') %}checked{% endif %} onchange="this.form.submit()">
+                            <label class="form-check-label small" for="filtroOferta">En oferta</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="mas_vendido" value="1" id="filtroMasVendido" {% if request.args.get('mas_vendido') %}checked{% endif %} onchange="this.form.submit()">
+                            <label class="form-check-label small" for="filtroMasVendido">Más vendido</label>
+                        </div>
+                    </div>
+                    <input type="hidden" name="orden" value="{{ request.args.get('orden', 'relevancia') }}">
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-9">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="mb-0">{{ "Resultados para “" + busqueda + "”" if busqueda else "Catálogo" }}</h2>
+            <form method="GET" class="d-flex align-items-center gap-2">
+                <input type="hidden" name="q" value="{{ busqueda }}">
+                {% for key in ['categoria_id', 'color_id', 'disponibilidad', 'nuevo', 'destacado', 'oferta', 'mas_vendido'] %}
+                {% if request.args.get(key) %}<input type="hidden" name="{{ key }}" value="{{ request.args.get(key) }}">{% endif %}
+                {% endfor %}
+                <label class="small mb-0">Ordenar por:</label>
+                <select name="orden" class="form-select form-select-sm" style="width:auto;" onchange="this.form.submit()">
+                    <option value="relevancia" {% if request.args.get('orden', 'relevancia' )=='relevancia' %}selected{% endif %}>Más relevantes</option>
+                    <option value="fecha" {% if request.args.get('orden')=='fecha' %}selected{% endif %}>Fecha</option>
+                    <option value="az" {% if request.args.get('orden')=='az' %}selected{% endif %}>A-Z</option>
+                    <option value="za" {% if request.args.get('orden')=='za' %}selected{% endif %}>Z-A</option>
+                    <option value="precio_asc" {% if request.args.get('orden')=='precio_asc' %}selected{% endif %}>Precio: menor a mayor</option>
+                    <option value="precio_desc" {% if request.args.get('orden')=='precio_desc' %}selected{% endif %}>Precio: mayor a menor</option>
+                </select>
+            </form>
+        </div>
+
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            {% for p in productos %}
+            <div class="col">
+                {% include "tienda/_tarjeta_producto.html" %}
+            </div>
+            {% else %}
+            <p class="text-muted">No se encontraron productos con esos filtros.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================
+     4. SECCIONES ADICIONALES (DESTACADOS, NOVEDADES, REGISTRO)
+     ============================================================ -->
+{% if not hay_filtros_activos %}
+    {% if destacados_home %}
+    <hr class="my-5">
+    <h3 class="fw-bold mb-4">Destacados</h3>
+    <div class="row row-cols-1 row-cols-md-4 g-4">
+        {% for p in destacados_home %}
+        <div class="col">{% include "tienda/_tarjeta_producto.html" %}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if novedades_home %}
+    <hr class="my-5">
+    <h3 class="fw-bold mb-4">Novedades</h3>
+    <div class="row row-cols-1 row-cols-md-4 g-4">
+        {% for p in novedades_home %}
+        <div class="col">{% include "tienda/_tarjeta_producto.html" %}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+{% endif %}
+
+{% if not current_user.is_authenticated %}
+<div class="text-center py-5 my-5 rounded-4" style="background-color:#f4f4f4;">
+    <h3 class="fw-bold text-uppercase">Suscríbete y empieza a marcar tendencia con NAHARA</h3>
+    <p class="text-muted">Regístrate como cliente Público, Minorista o Mayorista y accede a tus precios y promociones.</p>
+    <a href="{{ url_for('auth.registro_cliente') }}" class="btn btn-nahara btn-lg px-5">Regístrate</a>
+</div>
+{% endif %}
+{% endblock %}
